@@ -4,12 +4,16 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AppShell } from "@/components/AppShell";
+import { MerchantShell } from "@/components/MerchantShell";
 import Home from "./pages/Home";
 import ExploreList from "./pages/ExploreList";
 import ExploreMap from "./pages/ExploreMap";
 import Preferences from "./pages/Preferences";
 import Detail from "./pages/Detail";
 import Redeem from "./pages/Redeem";
+import MerchantRules from "./pages/merchant/MerchantRules";
+import MerchantOffers from "./pages/merchant/MerchantOffers";
+import MerchantDashboard from "./pages/merchant/MerchantDashboard";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -29,6 +33,12 @@ const App = () => (
             <Route path="/preferences" element={<Preferences />} />
             <Route path="/detail/:id" element={<Detail />} />
             <Route path="/redeem" element={<Redeem />} />
+          </Route>
+          <Route path="/merchant" element={<Navigate to="/merchant/dashboard" replace />} />
+          <Route path="/merchant" element={<MerchantShell />}>
+            <Route path="rules" element={<MerchantRules />} />
+            <Route path="offers" element={<MerchantOffers />} />
+            <Route path="dashboard" element={<MerchantDashboard />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

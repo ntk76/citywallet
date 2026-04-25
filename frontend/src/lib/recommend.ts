@@ -1,6 +1,7 @@
 import type { ContextSignals } from "@/mocks/context";
 import type { POI } from "@/mocks/pois";
 import type { Preferences } from "./prefs";
+import { listMerchantOffers, toDynamicOffer } from "./merchant-offers";
 
 export type DynamicOffer = {
   id: string;
@@ -50,6 +51,12 @@ export function recommend(
   ctx: ContextSignals,
   prefs: Preferences,
 ): Recommendation[] {
+  const activeMerchantByPoi = new Map(
+    listMerchantOffers()
+      .filter((offer) => offer.active)
+      .map((offer) => [offer.poiId, offer] as const),
+  );
+
   return pois
     .map((poi): Recommendation => {
       let score = 0;
@@ -85,7 +92,11 @@ export function recommend(
 
       // Dynamic offer when demand is low
       let offer: DynamicOffer | undefined;
-      if (poi.demand < 0.4 && poi.openNow) {
+      const merchantOffer = activeMerchantByPoi.get(poi.id);
+      if (merchantOffer && poi.openNow) {
+        offer = toDynamicOffer(merchantOffer);
+        score += 15;
+      } else if (poi.demand < 0.4 && poi.openNow) {
         const discount = poi.demand < 0.25 ? 20 : 15;
         offer = {
           id: `offer-${poi.id}`,
