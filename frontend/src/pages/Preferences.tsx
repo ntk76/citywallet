@@ -1,18 +1,75 @@
 import { useState } from "react";
 import { categoryMeta, type Category } from "@/mocks/pois";
-import { DEFAULT_PREFS, loadPrefs, savePrefs, type Diet, type Preferences } from "@/lib/prefs";
+import {
+  DEFAULT_PREFS,
+  loadPrefs,
+  savePrefs,
+  type Diet,
+  type PaymentProfile,
+  type Preferences,
+  type PaymentMethod,
+} from "@/lib/prefs";
 import { Slider } from "@/components/ui/slider";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
 
 export default function Preferences() {
   const [p, setP] = useState<Preferences>(() => loadPrefs());
+  const [profileLabel, setProfileLabel] = useState("Mein Wallet");
+  const [profileMethod, setProfileMethod] = useState<PaymentMethod>(p.preferredPaymentMethod);
+  const [profileDetails, setProfileDetails] = useState("");
+  const paymentOptions: Array<{ id: PaymentMethod; label: string }> = [
+    { id: "applepay", label: "Apple Pay" },
+    { id: "googlepay", label: "Google Pay" },
+    { id: "paypal", label: "PayPal" },
+    { id: "card", label: "Kreditkarte" },
+    { id: "cash", label: "Bar vor Ort" },
+  ];
 
   const update = (patch: Partial<Preferences>) => setP((cur) => ({ ...cur, ...patch }));
   const updateWeight = (c: Category, v: number) =>
     setP((cur) => ({ ...cur, weights: { ...cur.weights, [c]: v } }));
+  const togglePaymentMethod = (method: PaymentMethod, checked: boolean) =>
+    setP((cur) => {
+      const next = checked
+        ? Array.from(new Set([...cur.paymentMethods, method]))
+        : cur.paymentMethods.filter((m) => m !== method);
+
+      const safeNext: PaymentMethod[] = (next.length > 0 ? next : ["cash"]) as PaymentMethod[];
+      const preferred = safeNext.includes(cur.preferredPaymentMethod)
+        ? cur.preferredPaymentMethod
+        : safeNext[0];
+
+      return { ...cur, paymentMethods: safeNext, preferredPaymentMethod: preferred };
+    });
+  const addPaymentProfile = () =>
+    setP((cur) => {
+      const profile: PaymentProfile = {
+        id: `pp-${Math.random().toString(36).slice(2, 10)}`,
+        method: profileMethod,
+        label: profileLabel.trim() || "Zahlprofil",
+        details: profileDetails.trim() || undefined,
+      };
+      const nextProfiles = [profile, ...cur.paymentProfiles];
+      return {
+        ...cur,
+        paymentProfiles: nextProfiles,
+        preferredPaymentProfileId: cur.preferredPaymentProfileId ?? profile.id,
+      };
+    });
+  const removePaymentProfile = (id: string) =>
+    setP((cur) => {
+      const nextProfiles = cur.paymentProfiles.filter((profile) => profile.id !== id);
+      return {
+        ...cur,
+        paymentProfiles: nextProfiles,
+        preferredPaymentProfileId:
+          cur.preferredPaymentProfileId === id ? nextProfiles[0]?.id : cur.preferredPaymentProfileId,
+      };
+    });
 
   const save = () => {
     savePrefs(p);
@@ -101,6 +158,103 @@ export default function Preferences() {
                 {s} Min
               </Button>
             ))}
+          </div>
+        </div>
+      </section>
+
+      <section className="space-y-3 glass rounded-[var(--radius)] p-4">
+        <h2 className="font-semibold">Bezahlen in der App</h2>
+        <p className="text-xs text-muted-foreground">
+          Wähle, welche Zahlungsmethoden dir beim Checkout angeboten werden.
+        </p>
+        <div className="space-y-2">
+          {paymentOptions.map((option) => (
+            <div key={option.id} className="flex items-center justify-between">
+              <Label htmlFor={`pay-${option.id}`} className="text-sm">
+                {option.label}
+              </Label>
+              <Switch
+                id={`pay-${option.id}`}
+                checked={p.paymentMethods.includes(option.id)}
+                onCheckedChange={(v) => togglePaymentMethod(option.id, v)}
+              />
+            </div>
+          ))}
+        </div>
+        <div className="space-y-2">
+          <Label className="text-xs">Standard-Zahlungsart</Label>
+          <div className="flex flex-wrap gap-2">
+            {paymentOptions
+              .filter((option) => p.paymentMethods.includes(option.id))
+              .map((option) => (
+                <Button
+                  key={option.id}
+                  size="sm"
+                  variant={p.preferredPaymentMethod === option.id ? "default" : "outline"}
+                  onClick={() => update({ preferredPaymentMethod: option.id })}
+                  className={`rounded-full ${p.preferredPaymentMethod === option.id ? "sunset-bg text-primary-foreground border-0" : ""}`}
+                >
+                  {option.label}
+                </Button>
+              ))}
+          </div>
+        </div>
+        <div className="space-y-2 border-t border-border/60 pt-2">
+          <Label className="text-xs">Gespeicherte Zahlungsprofile</Label>
+          <div className="grid gap-2">
+            <Input
+              value={profileLabel}
+              onChange={(e) => setProfileLabel(e.target.value)}
+              placeholder="Bezeichnung, z.B. Privatkarte"
+            />
+            <select
+              value={profileMethod}
+              onChange={(e) => setProfileMethod(e.target.value as PaymentMethod)}
+              className="rounded-md border border-border bg-background px-3 py-2 text-sm"
+            >
+              {paymentOptions
+                .filter((option) => p.paymentMethods.includes(option.id))
+                .map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label}
+                  </option>
+                ))}
+            </select>
+            <Input
+              value={profileDetails}
+              onChange={(e) => setProfileDetails(e.target.value)}
+              placeholder="Details, z.B. **** 4242"
+            />
+            <Button size="sm" variant="outline" onClick={addPaymentProfile}>
+              Zahlungsprofil hinzufügen
+            </Button>
+          </div>
+          <div className="space-y-2">
+            {p.paymentProfiles.map((profile) => (
+              <div key={profile.id} className="flex items-center justify-between rounded-xl border border-border p-2">
+                <button
+                  onClick={() => update({ preferredPaymentProfileId: profile.id, preferredPaymentMethod: profile.method })}
+                  className="text-left"
+                >
+                  <p className="text-sm font-medium">{profile.label}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {paymentOptions.find((opt) => opt.id === profile.method)?.label}
+                    {profile.details ? ` · ${profile.details}` : ""}
+                  </p>
+                </button>
+                <div className="flex items-center gap-2">
+                  {p.preferredPaymentProfileId === profile.id && (
+                    <span className="rounded-full bg-success/15 px-2 py-0.5 text-[11px] text-success">Standard</span>
+                  )}
+                  <Button size="sm" variant="ghost" onClick={() => removePaymentProfile(profile.id)}>
+                    Entfernen
+                  </Button>
+                </div>
+              </div>
+            ))}
+            {p.paymentProfiles.length === 0 && (
+              <p className="text-xs text-muted-foreground">Noch keine Zahlungsprofile gespeichert.</p>
+            )}
           </div>
         </div>
       </section>
