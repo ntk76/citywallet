@@ -1,13 +1,16 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Route, Routes, Navigate } from "react-router-dom";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import Index from "./pages/Index.tsx";
-import Consumer from "./pages/Consumer.tsx";
-import Merchant from "./pages/Merchant.tsx";
-import Redeem from "./pages/Redeem.tsx";
-import NotFound from "./pages/NotFound.tsx";
+import { AppShell } from "@/components/AppShell";
+import Home from "./pages/Home";
+import ExploreList from "./pages/ExploreList";
+import ExploreMap from "./pages/ExploreMap";
+import Preferences from "./pages/Preferences";
+import Detail from "./pages/Detail";
+import Redeem from "./pages/Redeem";
+import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
 
@@ -18,10 +21,15 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Index />} />
-          <Route path="/consumer" element={<Consumer />} />
-          <Route path="/merchant" element={<Merchant />} />
-          <Route path="/redeem/:token" element={<Redeem />} />
+          <Route element={<AppShell />}>
+            <Route path="/" element={<Home />} />
+            <Route path="/explore" element={<Navigate to="/explore/list" replace />} />
+            <Route path="/explore/list" element={<ExploreList />} />
+            <Route path="/explore/map" element={<ExploreMap />} />
+            <Route path="/preferences" element={<Preferences />} />
+            <Route path="/detail/:id" element={<Detail />} />
+            <Route path="/redeem" element={<Redeem />} />
+          </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>
       </BrowserRouter>
