@@ -2,68 +2,73 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Generative City Wallet — Design System
-   Aesthetic: nocturnal city, neon-mint × electric indigo, glass surfaces.
+/* Generative City Wallet — "Sunset City" Design System
+   Warm coral × deep indigo, golden hour gradients, soft glass.
    All colors HSL.
 */
 
 @layer base {
   :root {
-    --background: 230 30% 7%;
-    --foreground: 180 20% 96%;
+    --background: 28 40% 97%;
+    --foreground: 240 35% 14%;
 
-    --card: 230 28% 10%;
-    --card-foreground: 180 20% 96%;
+    --card: 0 0% 100%;
+    --card-foreground: 240 35% 14%;
 
-    --popover: 230 30% 9%;
-    --popover-foreground: 180 20% 96%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 240 35% 14%;
 
-    --primary: 158 84% 52%;
-    --primary-foreground: 230 40% 8%;
+    --primary: 14 90% 58%;            /* sunset coral */
+    --primary-foreground: 28 40% 98%;
+    --primary-glow: 28 95% 64%;       /* amber */
 
-    --secondary: 252 80% 65%;
-    --secondary-foreground: 230 40% 8%;
+    --secondary: 252 60% 32%;         /* deep indigo */
+    --secondary-foreground: 28 40% 98%;
 
-    --muted: 230 20% 16%;
-    --muted-foreground: 220 14% 65%;
+    --muted: 24 30% 93%;
+    --muted-foreground: 240 12% 42%;
 
-    --accent: 252 80% 65%;
-    --accent-foreground: 230 40% 8%;
+    --accent: 332 78% 60%;            /* magenta dusk */
+    --accent-foreground: 28 40% 98%;
 
-    --destructive: 0 84% 62%;
+    --destructive: 0 78% 55%;
     --destructive-foreground: 0 0% 100%;
 
-    --success: 158 84% 52%;
-    --success-foreground: 230 40% 8%;
+    --success: 158 70% 40%;
+    --success-foreground: 0 0% 100%;
 
-    --warning: 38 95% 60%;
-    --warning-foreground: 230 40% 8%;
+    --warning: 38 95% 55%;
+    --warning-foreground: 240 35% 14%;
 
-    --border: 230 20% 18%;
-    --input: 230 20% 18%;
-    --ring: 158 84% 52%;
+    --border: 24 25% 88%;
+    --input: 24 25% 88%;
+    --ring: 14 90% 58%;
 
-    --radius: 1rem;
+    --radius: 1.25rem;
 
-    /* Gradients */
-    --gradient-aurora: linear-gradient(135deg, hsl(158 84% 52%) 0%, hsl(190 90% 55%) 50%, hsl(252 80% 65%) 100%);
-    --gradient-card: linear-gradient(155deg, hsl(230 28% 12% / 0.9) 0%, hsl(230 30% 8% / 0.95) 100%);
-    --gradient-glow: radial-gradient(circle at 30% 20%, hsl(158 84% 52% / 0.25), transparent 60%),
-                     radial-gradient(circle at 80% 90%, hsl(252 80% 65% / 0.25), transparent 60%);
+    /* Sunset gradients */
+    --gradient-sunset: linear-gradient(135deg, hsl(14 90% 58%) 0%, hsl(28 95% 64%) 50%, hsl(48 95% 62%) 100%);
+    --gradient-dusk: linear-gradient(160deg, hsl(332 78% 60%) 0%, hsl(14 90% 58%) 55%, hsl(38 95% 60%) 100%);
+    --gradient-night: linear-gradient(180deg, hsl(252 60% 32%) 0%, hsl(280 55% 28%) 100%);
+    --gradient-sky: linear-gradient(180deg, hsl(28 95% 64% / 0.18), hsl(332 78% 60% / 0.10) 60%, transparent);
+
+    /* Surfaces */
+    --surface-glass: hsl(0 0% 100% / 0.72);
+    --surface-frosted: hsl(28 40% 97% / 0.65);
 
     /* Shadows */
-    --shadow-glow: 0 0 40px hsl(158 84% 52% / 0.35);
-    --shadow-card: 0 20px 60px -20px hsl(230 60% 4% / 0.8);
-    --shadow-soft: 0 4px 20px -8px hsl(230 60% 4% / 0.6);
+    --shadow-glow: 0 12px 40px -12px hsl(14 90% 58% / 0.45);
+    --shadow-card: 0 14px 40px -18px hsl(252 60% 32% / 0.25);
+    --shadow-soft: 0 4px 16px -8px hsl(252 60% 32% / 0.15);
 
-    --sidebar-background: 230 30% 7%;
-    --sidebar-foreground: 180 20% 96%;
-    --sidebar-primary: 158 84% 52%;
-    --sidebar-primary-foreground: 230 40% 8%;
-    --sidebar-accent: 230 20% 16%;
-    --sidebar-accent-foreground: 180 20% 96%;
-    --sidebar-border: 230 20% 18%;
-    --sidebar-ring: 158 84% 52%;
+    --sidebar-background: 28 40% 97%;
+    --sidebar-foreground: 240 35% 14%;
+    --sidebar-primary: 14 90% 58%;
+    --sidebar-primary-foreground: 28 40% 98%;
+    --sidebar-accent: 24 30% 93%;
+    --sidebar-accent-foreground: 240 35% 14%;
+    --sidebar-border: 24 25% 88%;
+    --sidebar-ring: 14 90% 58%;
   }
 }
 
@@ -77,7 +82,7 @@
   body {
     @apply bg-background text-foreground antialiased;
     font-family: 'Space Grotesk', system-ui, -apple-system, sans-serif;
-    background-image: var(--gradient-glow);
+    background-image: var(--gradient-sky);
     background-attachment: fixed;
   }
   h1, h2, h3, h4 {
@@ -91,20 +96,28 @@
 
 @layer components {
   .glass {
-    background: var(--gradient-card);
-    backdrop-filter: blur(20px);
-    -webkit-backdrop-filter: blur(20px);
+    background: var(--surface-glass);
+    backdrop-filter: blur(18px) saturate(140%);
+    -webkit-backdrop-filter: blur(18px) saturate(140%);
     border: 1px solid hsl(var(--border));
     box-shadow: var(--shadow-card);
   }
-  .aurora-text {
-    background: var(--gradient-aurora);
+  .frosted {
+    background: var(--surface-frosted);
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+  }
+  .sunset-text {
+    background: var(--gradient-sunset);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
   }
-  .aurora-bg {
-    background: var(--gradient-aurora);
+  .sunset-bg {
+    background: var(--gradient-sunset);
+  }
+  .dusk-bg {
+    background: var(--gradient-dusk);
   }
   .glow {
     box-shadow: var(--shadow-glow);
@@ -117,4 +130,15 @@
     70% { box-shadow: 0 0 0 16px hsl(var(--primary) / 0); }
     100% { box-shadow: 0 0 0 0 hsl(var(--primary) / 0); }
   }
+  @keyframes fade-up {
+    from { opacity: 0; transform: translateY(8px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+  .animate-fade-up { animation: fade-up 0.4s ease-out both; }
+}
+
+/* Leaflet base — keep tiles square within rounded containers */
+.leaflet-container {
+  font-family: inherit;
+  background: hsl(var(--muted));
 }
