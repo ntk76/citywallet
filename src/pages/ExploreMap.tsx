@@ -1,6 +1,5 @@
 import { useMemo, useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
-import MarkerClusterGroup from "react-leaflet-cluster";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { POIS, categoryMeta } from "@/mocks/pois";
@@ -38,37 +37,35 @@ export default function ExploreMap() {
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
             url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
           />
-          <MarkerClusterGroup chunkedLoading>
-            {POIS.map((p) => (
-              <Marker key={p.id} position={[p.location.lat, p.location.lng]}>
-                <Popup>
-                  <div className="space-y-1.5 min-w-[180px]">
-                    <div className="text-xs uppercase tracking-wide opacity-70">
-                      {categoryMeta[p.category].emoji} {categoryMeta[p.category].label}
-                    </div>
-                    <div className="font-semibold">{p.name}</div>
-                    <div className="text-xs opacity-70">{p.distanceM} m · {p.walkMin} Min</div>
-                    <div className="flex gap-2 pt-1">
-                      <Link
-                        to={`/detail/${p.id}`}
-                        className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"
-                      >
-                        Details
-                      </Link>
-                      <a
-                        href={mapsLink(p.location.lat, p.location.lng, p.name)}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="rounded-full border border-border px-3 py-1 text-xs font-semibold"
-                      >
-                        Navigieren
-                      </a>
-                    </div>
+          {POIS.map((p) => (
+            <Marker key={p.id} position={[p.location.lat, p.location.lng]}>
+              <Popup>
+                <div className="space-y-1.5 min-w-[180px]">
+                  <div className="text-xs uppercase tracking-wide opacity-70">
+                    {categoryMeta[p.category].emoji} {categoryMeta[p.category].label}
                   </div>
-                </Popup>
-              </Marker>
-            ))}
-          </MarkerClusterGroup>
+                  <div className="font-semibold">{p.name}</div>
+                  <div className="text-xs opacity-70">{p.distanceM} m · {p.walkMin} Min</div>
+                  <div className="flex gap-2 pt-1">
+                    <Link
+                      to={`/detail/${p.id}`}
+                      className="rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground"
+                    >
+                      Details
+                    </Link>
+                    <a
+                      href={mapsLink(p.location.lat, p.location.lng, p.name)}
+                      target="_blank"
+                      rel="noreferrer"
+                      className="rounded-full border border-border px-3 py-1 text-xs font-semibold"
+                    >
+                      Navigieren
+                    </a>
+                  </div>
+                </div>
+              </Popup>
+            </Marker>
+          ))}
         </MapContainer>
       </div>
     </div>
