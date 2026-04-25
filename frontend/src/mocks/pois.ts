@@ -25,6 +25,7 @@ export type POI = {
   // simulated demand 0..1 — low demand triggers dynamic offers
   demand: number;
   imageHue: number;
+  imageUrl?: string;
   description: string;
 };
 
@@ -148,6 +149,7 @@ export const POIS: POI[] = [
     tags: ["live", "indie", "abend"],
     demand: 0.5,
     imageHue: 280,
+    imageUrl: "https://images.unsplash.com/photo-1429962714451-bb934ecdc4ec?auto=format&fit=crop&w=1600&q=80",
     description: "Heute Abend: Indie-Live mit Support — kleine Bühne, große Bands.",
   },
   {
@@ -163,6 +165,7 @@ export const POIS: POI[] = [
     tags: ["theater", "talk"],
     demand: 0.2,
     imageHue: 320,
+    imageUrl: "https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&w=1600&q=80",
     description: "Kurzformat: Gespräch mit Ensemble + Bar im Foyer.",
   },
   {

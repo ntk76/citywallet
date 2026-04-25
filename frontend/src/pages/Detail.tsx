@@ -38,7 +38,13 @@ export default function Detail() {
 
       <div
         className="relative h-52 rounded-[var(--radius)] overflow-hidden glow"
-        style={{ background: `linear-gradient(135deg, hsl(${poi.imageHue} 90% 58%), hsl(${(poi.imageHue + 30) % 360} 88% 62%) 70%, hsl(${(poi.imageHue + 60) % 360} 90% 64%))` }}
+        style={{
+          backgroundImage: poi.imageUrl
+            ? `linear-gradient(135deg, hsla(${poi.imageHue} 90% 20% / 0.5), hsla(${(poi.imageHue + 30) % 360} 88% 24% / 0.4) 70%, hsla(${(poi.imageHue + 60) % 360} 90% 28% / 0.35)), url(${poi.imageUrl})`
+            : `linear-gradient(135deg, hsl(${poi.imageHue} 90% 58%), hsl(${(poi.imageHue + 30) % 360} 88% 62%) 70%, hsl(${(poi.imageHue + 60) % 360} 90% 64%))`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       >
         {offer && (
           <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/95 px-3 py-1 text-sm font-bold text-foreground shadow-soft">

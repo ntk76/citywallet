@@ -14,7 +14,13 @@ export function OfferCard({ rec, big = false }: { rec: Recommendation; big?: boo
       {/* Hero band */}
       <div
         className={`relative ${big ? "h-44" : "h-28"} sunset-bg`}
-        style={{ background: `linear-gradient(135deg, hsl(${poi.imageHue} 90% 58%), hsl(${(poi.imageHue + 30) % 360} 88% 62%) 70%, hsl(${(poi.imageHue + 60) % 360} 90% 64%))` }}
+        style={{
+          backgroundImage: poi.imageUrl
+            ? `linear-gradient(135deg, hsla(${poi.imageHue} 90% 20% / 0.45), hsla(${(poi.imageHue + 30) % 360} 88% 24% / 0.35) 70%, hsla(${(poi.imageHue + 60) % 360} 90% 28% / 0.3)), url(${poi.imageUrl})`
+            : `linear-gradient(135deg, hsl(${poi.imageHue} 90% 58%), hsl(${(poi.imageHue + 30) % 360} 88% 62%) 70%, hsl(${(poi.imageHue + 60) % 360} 90% 64%))`,
+          backgroundSize: "cover",
+          backgroundPosition: "center",
+        }}
       >
         {offer && (
           <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/90 px-2.5 py-1 text-xs font-semibold text-foreground shadow-soft">
