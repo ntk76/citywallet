@@ -3,7 +3,7 @@ package com.citywallet.backend.service;
 import com.citywallet.backend.model.ContextEvent;
 import com.citywallet.backend.model.EventsResult;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.json.JsonMapper;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
@@ -25,7 +25,7 @@ public class TavilyService {
     private static final String TAVILY_URL = "https://api.tavily.com/search";
 
     private final HttpClient httpClient = HttpClient.newBuilder().build();
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final JsonMapper jsonMapper = new JsonMapper();
     private final Map<String, CacheEntry> cache = new ConcurrentHashMap<>();
 
     @Value("${TAVILY_API_KEY:}")
@@ -52,7 +52,7 @@ public class TavilyService {
         }
 
         try {
-            String body = objectMapper.writeValueAsString(Map.of(
+            String body = jsonMapper.writeValueAsString(Map.of(
                 "api_key", apiKey,
                 "query", QUERY,
                 "search_depth", "basic",
@@ -75,7 +75,7 @@ public class TavilyService {
                 return fallback;
             }
 
-            JsonNode root = objectMapper.readTree(response.body());
+            JsonNode root = jsonMapper.readTree(response.body());
             List<ContextEvent> events = parseEvents(root);
             if (events.size() < 3) {
                 EventsResult fallback = withFallback("Zu wenige Tavily-Treffer.", false);
