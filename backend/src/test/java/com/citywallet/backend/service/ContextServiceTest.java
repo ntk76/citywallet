@@ -23,7 +23,7 @@ class ContextServiceTest {
 
     @Test
     void parseTimeslot_defaultsTo30ForInvalidValues() {
-        ContextService service = new ContextService(tavilyService, "München", "Balanstraße");
+        ContextService service = new ContextService(tavilyService, "Munich", "Balanstrasse");
 
         assertEquals(30, service.parseTimeslot(null));
         assertEquals(30, service.parseTimeslot("5"));
@@ -32,7 +32,7 @@ class ContextServiceTest {
 
     @Test
     void parseTimeslot_acceptsSupportedValues() {
-        ContextService service = new ContextService(tavilyService, "München", "Balanstraße");
+        ContextService service = new ContextService(tavilyService, "Munich", "Balanstrasse");
 
         assertEquals(15, service.parseTimeslot("15"));
         assertEquals(30, service.parseTimeslot("30"));
@@ -55,12 +55,12 @@ class ContextServiceTest {
             )
         );
 
-        ContextService service = new ContextService(tavilyService, "München", "Balanstraße");
+        ContextService service = new ContextService(tavilyService, "Munich", "Balanstrasse");
         ContextResponse response = service.buildContext(30);
 
         assertNotNull(response.time());
-        assertEquals("München", response.location().city());
-        assertEquals("Balanstraße", response.location().region());
+        assertEquals("Munich", response.location().city());
+        assertEquals("Balanstrasse", response.location().region());
         assertEquals(30, response.timeslot());
         assertEquals("fallback", response.eventsMeta().source());
         assertFalse(response.eventsMeta().cacheHit());

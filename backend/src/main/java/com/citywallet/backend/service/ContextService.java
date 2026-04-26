@@ -20,8 +20,8 @@ public class ContextService {
 
     public ContextService(
         TavilyService tavilyService,
-        @Value("${citywallet.events.city:München}") String eventsCity,
-        @Value("${citywallet.events.region:Balanstraße}") String eventsRegion
+        @Value("${citywallet.events.city:Munich}") String eventsCity,
+        @Value("${citywallet.events.region:Balanstrasse}") String eventsRegion
     ) {
         this.tavilyService = tavilyService;
         this.eventsCity = eventsCity;
