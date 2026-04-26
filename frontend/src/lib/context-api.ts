@@ -1,16 +1,19 @@
 import { useEffect, useState } from "react";
 import { fetchContext, type ContextSignals } from "@/mocks/context";
+import { normalizeTimeslot, type TimeslotMinutes } from "@/lib/timeslot";
 
 export type BackendContextEvent = {
   title: string;
   url: string;
   snippet: string;
+  imageUrl?: string | null;
 };
 
 export type BackendEventsMeta = {
   source: string;
   cacheHit: boolean;
   note?: string | null;
+  searchQuery?: string | null;
 };
 
 type BackendContextResponse = {
@@ -19,6 +22,8 @@ type BackendContextResponse = {
   timeslot: number;
   events: BackendContextEvent[];
   eventsMeta: BackendEventsMeta;
+  dining: BackendContextEvent[];
+  diningMeta: BackendEventsMeta;
 };
 
 const STUTTGART_CENTER = { lat: 48.7758, lng: 9.1829 };
@@ -44,9 +49,19 @@ export type BackendContextPayload = {
   context: ContextSignals;
   events: BackendContextEvent[];
   eventsMeta: BackendEventsMeta;
+  dining: BackendContextEvent[];
+  diningMeta: BackendEventsMeta;
 };
 
-export async function fetchBackendContext(timeslotMin: 15 | 30 | 60): Promise<BackendContextPayload> {
+function toTimeslotMinutes(value: number): TimeslotMinutes {
+  return normalizeTimeslot(value);
+}
+
+function buildFallbackContext(timeslotMin: TimeslotMinutes): ContextSignals {
+  return { ...fetchContext(timeslotMin), timeslotMin };
+}
+
+export async function fetchBackendContext(timeslotMin: TimeslotMinutes): Promise<BackendContextPayload> {
   const response = await fetch(`${BACKEND_BASE_URL}/context`, {
     method: "GET",
     headers: { "X-Timeslot": String(timeslotMin) },
@@ -59,7 +74,13 @@ export async function fetchBackendContext(timeslotMin: 15 | 30 | 60): Promise<Ba
   const data = (await response.json()) as BackendContextResponse;
   const time = new Date(data.time);
   const hour = Number.isNaN(time.getHours()) ? new Date().getHours() : time.getHours();
-  const localFallback = fetchContext(timeslotMin);
+  const minute = Number.isNaN(time.getMinutes()) ? new Date().getMinutes() : time.getMinutes();
+  const localFallback = buildFallbackContext(timeslotMin);
+  const normalizedTimeslot = toTimeslotMinutes(data.timeslot);
+  const eventsSource = data.eventsMeta.source === "tavily" ? "tavily" : "fallback";
+  const diningSource = data.diningMeta.source === "tavily" ? "tavily" : "fallback";
+  const normalizedEvents = data.events.map((event) => ({ ...event, imageUrl: event.imageUrl ?? undefined }));
+  const normalizedDining = data.dining.map((event) => ({ ...event, imageUrl: event.imageUrl ?? undefined }));
 
   return {
     context: {
@@ -70,21 +91,30 @@ export async function fetchBackendContext(timeslotMin: 15 | 30 | 60): Promise<Ba
         label: localFallback.weather.label,
       },
       hour,
+      minute,
       partOfDay: toPartOfDay(hour),
       location: STUTTGART_CENTER,
-      timeslotMin: data.timeslot === 15 || data.timeslot === 30 || data.timeslot === 60 ? data.timeslot : timeslotMin,
+      timeslotMin: normalizedTimeslot,
+      source: "backend",
+      events: normalizedEvents,
+      eventsSource,
+      dining: normalizedDining,
+      diningSource,
+      livePois: [],
     },
-    events: data.events,
+    events: normalizedEvents,
     eventsMeta: data.eventsMeta,
+    dining: normalizedDining,
+    diningMeta: data.diningMeta,
   };
 }
 
-export function useBackendContext(timeslotMin: 15 | 30 | 60) {
-  const [ctx, setCtx] = useState<ContextSignals>(() => ({ ...fetchContext(timeslotMin), timeslotMin }));
+export function useBackendContext(timeslotMin: TimeslotMinutes) {
+  const [ctx, setCtx] = useState<ContextSignals>(() => buildFallbackContext(timeslotMin));
 
   useEffect(() => {
     let cancelled = false;
-    setCtx({ ...fetchContext(timeslotMin), timeslotMin });
+    setCtx(buildFallbackContext(timeslotMin));
 
     fetchBackendContext(timeslotMin)
       .then((remoteCtx) => {
@@ -102,25 +132,29 @@ export function useBackendContext(timeslotMin: 15 | 30 | 60) {
   return ctx;
 }
 
-export function useBackendContextData(timeslotMin: 15 | 30 | 60) {
-  const fallback = fetchContext(timeslotMin);
+export function useBackendContextData(timeslotMin: TimeslotMinutes) {
+  const fallback = buildFallbackContext(timeslotMin);
   const [data, setData] = useState<BackendContextPayload>({
-    context: { ...fallback, timeslotMin },
+    context: fallback,
     events: [],
     eventsMeta: { source: "fallback", cacheHit: false, note: "Backend nicht erreichbar" },
+    dining: [],
+    diningMeta: { source: "fallback", cacheHit: false, note: "Backend nicht erreichbar" },
   });
   const [isLoading, setIsLoading] = useState(true);
   const [isError, setIsError] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
-    const localFallback = fetchContext(timeslotMin);
+    const localFallback = buildFallbackContext(timeslotMin);
     setIsLoading(true);
     setIsError(false);
     setData({
-      context: { ...localFallback, timeslotMin },
+      context: localFallback,
       events: [],
       eventsMeta: { source: "fallback", cacheHit: false, note: "Lade Daten..." },
+      dining: [],
+      diningMeta: { source: "fallback", cacheHit: false, note: "Lade Daten..." },
     });
 
     fetchBackendContext(timeslotMin)
@@ -137,6 +171,7 @@ export function useBackendContextData(timeslotMin: 15 | 30 | 60) {
           setData((prev) => ({
             ...prev,
             eventsMeta: { source: "fallback", cacheHit: false, note: "Backend nicht erreichbar" },
+            diningMeta: { source: "fallback", cacheHit: false, note: "Backend nicht erreichbar" },
           }));
         }
       });

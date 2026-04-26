@@ -19,7 +19,8 @@ import org.springframework.stereotype.Service;
 @Service
 public class TavilyService {
 
-    private static final String QUERY = "Stuttgart Mitte heute events highlights";
+    private static final String EVENTS_QUERY = "Stuttgart Mitte heute events highlights";
+    private static final String DINING_QUERY = "Stuttgart Mitte restaurants cafes bars open now";
     private static final int MIN_CACHE_MINUTES = 10;
     private static final int MAX_CACHE_MINUTES = 30;
     private static final String TAVILY_URL = "https://api.tavily.com/search";
@@ -38,22 +39,40 @@ public class TavilyService {
     private int timeoutMs;
 
     public EventsResult fetchRelevantEvents() {
+        return fetchByQuery(EVENTS_QUERY);
+    }
+
+    public EventsResult fetchRelevantDining() {
+        return fetchByQuery(DINING_QUERY);
+    }
+
+    public boolean isTavilyApiKeyConfigured() {
+        return !sanitizeApiKey(apiKey).isBlank();
+    }
+
+    private EventsResult fetchByQuery(String query) {
         int ttlMinutes = clampCacheMinutes(cacheTtlMinutes);
         long now = System.currentTimeMillis();
-        CacheEntry cached = cache.get(QUERY);
+        CacheEntry cached = cache.get(query);
         if (cached != null && cached.expiresAt > now) {
-            return new EventsResult(cached.value.events(), cached.value.source(), true, cached.value.note());
+            return new EventsResult(
+                cached.value.events(),
+                cached.value.source(),
+                true,
+                cached.value.note(),
+                cached.value.searchQuery()
+            );
         }
 
         String effectiveApiKey = sanitizeApiKey(apiKey);
         if (effectiveApiKey.isBlank()) {
-            return new EventsResult(List.of(), "tavily", false, "TAVILY_API_KEY fehlt.");
+            return new EventsResult(List.of(), "tavily", false, "TAVILY_API_KEY fehlt.", query);
         }
 
         try {
             String body = jsonMapper.writeValueAsString(Map.of(
                 "api_key", effectiveApiKey,
-                "query", QUERY,
+                "query", query,
                 "search_depth", "basic",
                 "max_results", 5,
                 "include_answer", false,
@@ -74,17 +93,18 @@ public class TavilyService {
                     List.of(),
                     "tavily",
                     false,
-                    "Tavily HTTP " + response.statusCode() + formatErrorDetail(response.body())
+                    "Tavily HTTP " + response.statusCode() + formatErrorDetail(response.body()),
+                    query
                 );
             }
 
             JsonNode root = jsonMapper.readTree(response.body());
             List<ContextEvent> events = parseEvents(root);
-            EventsResult success = new EventsResult(events.subList(0, Math.min(5, events.size())), "tavily", false, null);
-            putCache(now, ttlMinutes, success);
+            EventsResult success = new EventsResult(events.subList(0, Math.min(5, events.size())), "tavily", false, null, query);
+            putCache(query, now, ttlMinutes, success);
             return success;
         } catch (Exception ex) {
-            return new EventsResult(List.of(), "tavily", false, "Tavily Timeout oder Netzfehler.");
+            return new EventsResult(List.of(), "tavily", false, "Tavily Timeout oder Netzfehler.", query);
         }
     }
 
@@ -111,8 +131,8 @@ public class TavilyService {
         return ": " + snippet;
     }
 
-    private void putCache(long now, int ttlMinutes, EventsResult result) {
-        cache.put(QUERY, new CacheEntry(result, now + ttlMinutes * 60_000L));
+    private void putCache(String query, long now, int ttlMinutes, EventsResult result) {
+        cache.put(query, new CacheEntry(result, now + ttlMinutes * 60_000L));
     }
 
     private int clampCacheMinutes(int value) {
@@ -130,13 +150,14 @@ public class TavilyService {
             String title = item.path("title").asText("").trim();
             String url = item.path("url").asText("").trim();
             String content = item.path("content").asText("").trim();
+            String imageUrl = item.path("image_url").asText("").trim();
             if (title.isBlank() || url.isBlank()) {
                 continue;
             }
             String snippet = content.isBlank()
                 ? "Weitere Details direkt auf der Quelle."
                 : content.substring(0, Math.min(220, content.length()));
-            events.add(new ContextEvent(title, url, snippet));
+            events.add(new ContextEvent(title, url, snippet, imageUrl.isBlank() ? null : imageUrl));
         }
         return events;
     }

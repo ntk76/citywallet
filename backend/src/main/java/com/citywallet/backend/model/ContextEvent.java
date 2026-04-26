@@ -9,4 +9,7 @@ public record ContextEvent(
     String snippet,
     String imageUrl
 ) {
+    public ContextEvent(String title, String url, String snippet) {
+        this(title, url, snippet, null);
+    }
 }

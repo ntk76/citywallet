@@ -40,28 +40,29 @@ class ContextServiceTest {
 
     @Test
     void buildContext_returnsExpectedStructure() {
-        when(tavilyService.fetchRelevantEvents()).thenReturn(
-            new EventsResult(
-                List.of(
-                    new ContextEvent("e1", "https://example.com/1", "s1"),
-                    new ContextEvent("e2", "https://example.com/2", "s2"),
-                    new ContextEvent("e3", "https://example.com/3", "s3")
-                ),
-                "tavily",
-                false,
-                "note"
-            )
+        EventsResult result = new EventsResult(
+            List.of(
+                new ContextEvent("e1", "https://example.com/1", "s1"),
+                new ContextEvent("e2", "https://example.com/2", "s2"),
+                new ContextEvent("e3", "https://example.com/3", "s3")
+            ),
+            "tavily",
+            false,
+            "note"
         );
+        when(tavilyService.fetchRelevantEvents()).thenReturn(result);
+        when(tavilyService.fetchRelevantDining()).thenReturn(result);
 
         ContextService service = new ContextService(tavilyService);
         ContextResponse response = service.buildContext(30);
 
         assertNotNull(response.time());
-        assertEquals("Stuttgart", response.location().city());
-        assertEquals("Mitte", response.location().region());
+        assertEquals("Munich", response.location().city());
+        assertEquals("Balanstrasse", response.location().region());
         assertEquals(30, response.timeslot());
         assertEquals("tavily", response.eventsMeta().source());
         assertFalse(response.eventsMeta().cacheHit());
         assertEquals(3, response.events().size());
+        assertEquals(3, response.dining().size());
     }
 }

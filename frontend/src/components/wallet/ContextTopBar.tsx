@@ -35,7 +35,7 @@ export function ContextTopBar({
           🕒 {String(ctx.hour).padStart(2, "0")}:{String(ctx.minute).padStart(2, "0")}
         </span>
         <span className="frosted inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5">
-          📍 Munich · Balanstrasse 73
+          📍 Stuttgart · Mitte
         </span>
         <span className="frosted inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5 font-medium">
           ⏱ Time: {formatTimeslotLabel(slot)}
@@ -44,9 +44,7 @@ export function ContextTopBar({
       <div className="flex flex-col gap-2 border-t border-border/60 pt-3">
         <p className="text-xs font-medium text-muted-foreground">How much time do you have?</p>
         <TimeslotSelector value={slot} onChange={onSlotChange} />
-        <p className="text-[11px] text-muted-foreground">
-          Context: {ctx.source === "backend" ? "Live backend" : "Mock fallback"}
-        </p>
+
       </div>
     </section>
   );

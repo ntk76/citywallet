@@ -11,4 +11,7 @@ public record EventsResult(
     String note,
     String searchQuery
 ) {
+    public EventsResult(List<ContextEvent> events, String source, boolean cacheHit, String note) {
+        this(events, source, cacheHit, note, null);
+    }
 }
