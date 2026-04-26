@@ -3,11 +3,11 @@ export type TimeslotMinutes = 30 | 60 | 120 | 720 | 1440;
 const ALLOWED = new Set<TimeslotMinutes>([30, 60, 120, 720, 1440]);
 
 export const TIMESLOT_OPTIONS: Array<{ value: TimeslotMinutes; label: string }> = [
-  { value: 30, label: "30 Min" },
-  { value: 60, label: "60 Min" },
-  { value: 120, label: "2 h" },
-  { value: 720, label: "1/2 Tag" },
-  { value: 1440, label: "Ganzer Tag" },
+  { value: 30, label: "30 min" },
+  { value: 60, label: "60 min" },
+  { value: 120, label: "2 hr" },
+  { value: 720, label: "Half day" },
+  { value: 1440, label: "Full day" },
 ];
 
 export function normalizeTimeslot(value: unknown): TimeslotMinutes {
@@ -19,5 +19,5 @@ export function normalizeTimeslot(value: unknown): TimeslotMinutes {
 
 export function formatTimeslotLabel(m: TimeslotMinutes): string {
   const opt = TIMESLOT_OPTIONS.find((o) => o.value === m);
-  return opt?.label ?? `${m} Min`;
+  return opt?.label ?? `${m} min`;
 }

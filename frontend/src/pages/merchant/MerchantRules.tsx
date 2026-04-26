@@ -1,9 +1,9 @@
 import { CheckCircle2, AlertTriangle } from "lucide-react";
 
 const rules = [
-  { id: "rule-01", title: "Rabatt max. 30%", detail: "Offers dürfen den Maximalrabatt nicht überschreiten.", ok: true },
-  { id: "rule-02", title: "Mindestlaufzeit 30 Min", detail: "Jedes Angebot muss mindestens 30 Minuten verfügbar sein.", ok: true },
-  { id: "rule-03", title: "Keine doppelten Slots", detail: "Zeitfenster für dieselbe Zielgruppe dürfen sich nicht überschneiden.", ok: false },
+  { id: "rule-01", title: "Max discount 30%", detail: "Offers must not exceed the maximum discount.", ok: true },
+  { id: "rule-02", title: "Minimum duration 30 min", detail: "Each offer must be available for at least 30 minutes.", ok: true },
+  { id: "rule-03", title: "No overlapping slots", detail: "Time windows for the same audience must not overlap.", ok: false },
 ];
 
 export default function MerchantRules() {
@@ -12,10 +12,10 @@ export default function MerchantRules() {
       <section className="glass rounded-[var(--radius)] p-4">
         <p className="text-xs uppercase tracking-wide text-muted-foreground">Rules</p>
         <h2 className="mt-1 text-xl font-bold">
-          <span className="sunset-text">Regelwerk</span>
+          <span className="sunset-text">Rules</span>
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Prüfe Regeln vor der Aktivierung neuer Offers.
+          Review rules before activating new offers.
         </p>
       </section>
 

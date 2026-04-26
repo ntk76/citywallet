@@ -3,9 +3,9 @@ import { Home, Map, List, Sliders, QrCode } from "lucide-react";
 
 const tabs = [
   { to: "/", label: "Home", icon: Home, end: true },
-  { to: "/explore/list", label: "Liste", icon: List },
-  { to: "/explore/map", label: "Karte", icon: Map },
-  { to: "/preferences", label: "Profil", icon: Sliders },
+  { to: "/explore/list", label: "List", icon: List },
+  { to: "/explore/map", label: "Map", icon: Map },
+  { to: "/preferences", label: "Profile", icon: Sliders },
   { to: "/redeem", label: "QR", icon: QrCode },
 ];
 
@@ -17,7 +17,7 @@ export function AppShell() {
       </main>
 
       <nav
-        aria-label="Hauptnavigation"
+        aria-label="Main navigation"
         className="fixed bottom-3 left-1/2 z-50 w-[min(100%-1.5rem,28rem)] -translate-x-1/2 rounded-full glass px-2 py-2"
       >
         <ul className="flex items-center justify-between">

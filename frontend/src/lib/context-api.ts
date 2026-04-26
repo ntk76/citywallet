@@ -18,11 +18,19 @@ type BackendContext = {
     url: string;
     snippet: string;
   }>;
-  events: Array<{ title: string; url: string; snippet: string }>;
+  events: Array<{
+    title: string;
+    url: string;
+    snippet: string;
+    imageUrl?: string;
+    imageSource?: "tavily" | "og";
+  }>;
   eventsMeta?: {
     source: "tavily" | "fallback";
     cacheHit: boolean;
     note?: string;
+    /** Tavily search phrase used by the backend (when returned). */
+    searchQuery?: string;
   };
   weatherMeta?: {
     source: "tavily" | "fallback";

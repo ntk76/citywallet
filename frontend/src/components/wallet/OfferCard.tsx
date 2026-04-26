@@ -9,7 +9,7 @@ export function OfferCard({ rec, big = false }: { rec: Recommendation; big?: boo
     <Link
       to={`/detail/${poi.id}`}
       className={`group block overflow-hidden rounded-[var(--radius)] glass transition hover:translate-y-[-2px] hover:glow ${big ? "p-0" : "p-0"}`}
-      aria-label={`${poi.name} öffnen`}
+      aria-label={`Open ${poi.name}`}
     >
       {/* Hero band */}
       <div
@@ -45,18 +45,18 @@ export function OfferCard({ rec, big = false }: { rec: Recommendation; big?: boo
 
         <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-muted-foreground">
           <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" /> {poi.distanceM} m</span>
-          <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {poi.walkMin} Min</span>
+          <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" /> {poi.walkMin} min</span>
           {fitsTimeslot ? (
-            <span className="rounded-full bg-success/15 px-2 py-0.5 text-success">passt ins Zeitfenster</span>
+            <span className="rounded-full bg-success/15 px-2 py-0.5 text-success">fits time window</span>
           ) : (
-            <span className="rounded-full bg-muted px-2 py-0.5">knapp</span>
+            <span className="rounded-full bg-muted px-2 py-0.5">tight</span>
           )}
         </div>
 
         {big && (
           <div className="mt-3">
             <span className="inline-flex items-center justify-center rounded-full sunset-bg px-5 py-2.5 text-sm font-semibold text-primary-foreground glow">
-              {offer ? offer.cta : "Ansehen"} →
+              {offer ? offer.cta : "View"} →
             </span>
           </div>
         )}
@@ -73,5 +73,5 @@ export function Countdown({ minutes, className }: { minutes: number; className?:
   }, []);
   const m = Math.floor(secs / 60);
   const s = secs % 60;
-  return <span className={className} aria-label="Restzeit">⏱ {String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}</span>;
+  return <span className={className} aria-label="Time left">⏱ {String(m).padStart(2, "0")}:{String(s).padStart(2, "0")}</span>;
 }

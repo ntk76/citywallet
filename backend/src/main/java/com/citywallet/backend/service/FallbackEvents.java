@@ -11,27 +11,32 @@ public final class FallbackEvents {
         new ContextEvent(
             "Staatsgalerie Stuttgart - Aktuelle Ausstellungen",
             "https://www.staatsgalerie.de/",
-            "Kunst-Highlights mit wechselnden Ausstellungen im Zentrum von Stuttgart."
+            "Kunst-Highlights mit wechselnden Ausstellungen im Zentrum von Stuttgart.",
+            null
         ),
         new ContextEvent(
             "Stuttgart-Marketing - Events und Veranstaltungen heute",
             "https://www.stuttgart-tourist.de/",
-            "Offizielle Uebersicht zu Veranstaltungen, Touren und Stadt-Highlights."
+            "Offizielle Uebersicht zu Veranstaltungen, Touren und Stadt-Highlights.",
+            null
         ),
         new ContextEvent(
             "Markthalle Stuttgart - Kulinarische Entdeckungen",
             "https://www.stuttgart.de/markthalle",
-            "Beliebter Spot in Mitte fuer Food, regionale Produkte und kurze Besuche."
+            "Beliebter Spot in Mitte fuer Food, regionale Produkte und kurze Besuche.",
+            null
         ),
         new ContextEvent(
             "Wilhelma Stuttgart - Zoo und Botanischer Garten",
             "https://www.wilhelma.de/",
-            "Ausflugstipp mit wechselnden Programmpunkten und Indoor/Outdoor-Bereichen."
+            "Ausflugstipp mit wechselnden Programmpunkten und Indoor/Outdoor-Bereichen.",
+            null
         ),
         new ContextEvent(
             "Liederhalle Stuttgart - Konzerte und Kultur",
             "https://www.liederhalle-stuttgart.de/",
-            "Abendprogramm mit Musik, Kultur und Buehnenveranstaltungen in der Innenstadt."
+            "Abendprogramm mit Musik, Kultur und Buehnenveranstaltungen in der Innenstadt.",
+            null
         )
     );
 }

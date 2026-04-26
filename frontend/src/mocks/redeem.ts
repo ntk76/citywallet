@@ -11,6 +11,6 @@ export async function redeemToken(token: string): Promise<RedeemResult> {
   // 85% success
   const ok = Math.random() < 0.85 && token.length > 4;
   return ok
-    ? { success: true, token, message: "Eingelöst — viel Spaß!", redeemedAt: new Date().toISOString() }
-    : { success: false, token, message: "Token ungültig oder abgelaufen." };
+    ? { success: true, token, message: "Redeemed — enjoy!", redeemedAt: new Date().toISOString() }
+    : { success: false, token, message: "Token invalid or expired." };
 }

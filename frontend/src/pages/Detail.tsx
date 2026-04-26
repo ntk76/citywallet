@@ -5,6 +5,7 @@ import { recommend } from "@/lib/recommend";
 import { loadPrefs } from "@/lib/prefs";
 import { useContextSignals } from "@/lib/context-api";
 import { formatTimeslotLabel } from "@/lib/timeslot";
+import { useCustomerPois } from "@/lib/customer-pois";
 import { mapsLink } from "@/lib/geo";
 import { Countdown } from "@/components/wallet/OfferCard";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,8 @@ export default function Detail() {
   const nav = useNavigate();
   const prefs = useMemo(() => loadPrefs(), []);
   const ctx = useContextSignals(prefs.defaultTimeslot);
-  const sourcePois = ctx.livePois.length > 0 ? ctx.livePois : POIS;
+  const basePois = ctx.livePois.length > 0 ? ctx.livePois : POIS;
+  const sourcePois = useCustomerPois(basePois);
   const poi = useMemo(
     () => sourcePois.find((entry) => entry.id === id) ?? fetchPoi(id),
     [sourcePois, id],
@@ -25,8 +27,8 @@ export default function Detail() {
   if (!poi || !rec) {
     return (
       <div className="space-y-3">
-        <p>Ort nicht gefunden.</p>
-        <Link to="/explore/list" className="text-primary underline">Zur Liste</Link>
+        <p>Place not found.</p>
+        <Link to="/explore/list" className="text-primary underline">Back to list</Link>
       </div>
     );
   }
@@ -37,7 +39,7 @@ export default function Detail() {
   return (
     <div className="space-y-4">
       <button onClick={() => nav(-1)} className="inline-flex items-center gap-1 text-sm text-muted-foreground">
-        <ArrowLeft className="h-4 w-4" /> Zurück
+        <ArrowLeft className="h-4 w-4" /> Back
       </button>
 
       <div
@@ -52,7 +54,7 @@ export default function Detail() {
       >
         {offer && (
           <span className="absolute left-3 top-3 inline-flex items-center gap-1 rounded-full bg-background/95 px-3 py-1 text-sm font-bold text-foreground shadow-soft">
-            <Tag className="h-3.5 w-3.5" /> {offer.discountPct}% Rabatt
+            <Tag className="h-3.5 w-3.5" /> {offer.discountPct}% off
           </span>
         )}
         {offer && (
@@ -71,10 +73,10 @@ export default function Detail() {
           <MapPin className="h-3 w-3" /> {poi.distanceM} m
         </span>
         <span className="frosted rounded-full border border-border px-3 py-1.5 inline-flex items-center gap-1">
-          <Clock className="h-3 w-3" /> {poi.walkMin} Min Fußweg
+          <Clock className="h-3 w-3" /> {poi.walkMin} min walk
         </span>
         <span className={`rounded-full px-3 py-1.5 ${fitsTimeslot ? "bg-success/15 text-success" : "bg-warning/20 text-foreground"}`}>
-          {fitsTimeslot ? `Passt in ${formatTimeslotLabel(ctx.timeslotMin)}` : `Knapp für ${formatTimeslotLabel(ctx.timeslotMin)}`}
+          {fitsTimeslot ? `Fits ${formatTimeslotLabel(ctx.timeslotMin)}` : `Tight for ${formatTimeslotLabel(ctx.timeslotMin)}`}
         </span>
         <span className="frosted rounded-full border border-border px-3 py-1.5">{"€".repeat(poi.priceLevel)}</span>
       </div>
@@ -92,11 +94,11 @@ export default function Detail() {
             to={`/redeem?token=${offer.token}&poi=${poi.id}&pct=${offer.discountPct}`}
             className="flex-1 inline-flex items-center justify-center rounded-full sunset-bg px-5 py-3 text-sm font-semibold text-primary-foreground glow"
           >
-            Einlösen
+            Redeem
           </Link>
         ) : (
           <Button asChild className="flex-1 sunset-bg text-primary-foreground border-0">
-            <Link to="/redeem">QR scannen</Link>
+            <Link to="/redeem">Scan QR</Link>
           </Button>
         )}
         <a

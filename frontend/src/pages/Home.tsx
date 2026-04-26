@@ -8,12 +8,14 @@ import { ContextTopBar } from "@/components/wallet/ContextTopBar";
 import { PrivacyBanner } from "@/components/wallet/PrivacyBanner";
 import { Link } from "react-router-dom";
 import { normalizeTimeslot, type TimeslotMinutes } from "@/lib/timeslot";
+import { useCustomerPois } from "@/lib/customer-pois";
 
 export default function Home() {
   const prefs = useMemo(() => loadPrefs(), []);
   const [slot, setSlot] = useState<TimeslotMinutes>(() => normalizeTimeslot(prefs.defaultTimeslot));
   const ctx = useContextSignals(slot);
-  const sourcePois = ctx.livePois.length > 0 ? ctx.livePois : POIS;
+  const basePois = ctx.livePois.length > 0 ? ctx.livePois : POIS;
+  const sourcePois = useCustomerPois(basePois);
   const recs = useMemo(() => recommend(sourcePois, ctx, prefs), [sourcePois, ctx, prefs]);
   const top = recs[0];
   const rest = recs.slice(1, 4);
@@ -27,19 +29,19 @@ export default function Home() {
       <header className="space-y-2">
         <p className="text-xs uppercase tracking-widest text-muted-foreground">City Wallet</p>
         <h1 className="text-3xl font-bold leading-tight">
-          <span className="sunset-text">Was passt</span> gerade?
+          <span className="sunset-text">What fits</span> right now?
         </h1>
       </header>
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-muted-foreground">Events heute</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground">Events today</h2>
           <span
             className={`text-[11px] rounded-full px-2 py-0.5 ${
               ctx.eventsSource === "tavily" ? "bg-success/15 text-success" : "bg-warning/20 text-foreground"
             }`}
           >
-            {ctx.eventsSource === "tavily" ? "Quelle: Tavily" : "Quelle: Fallback"}
+            {ctx.eventsSource === "tavily" ? "Source: Tavily" : "Source: fallback"}
           </span>
         </div>
 
@@ -50,17 +52,28 @@ export default function Home() {
             rel="noreferrer"
             className="group block overflow-hidden rounded-[var(--radius)] glass transition hover:translate-y-[-2px] hover:glow"
           >
-            <div className="relative h-36 dusk-bg" />
+            <div
+              className={`relative h-36 ${topEvent.imageUrl ? "" : "dusk-bg"}`}
+              style={
+                topEvent.imageUrl
+                  ? {
+                      backgroundImage: `linear-gradient(to top, rgba(15,15,20,0.92) 0%, rgba(15,15,20,0.35) 55%, rgba(15,15,20,0.2) 100%), url(${topEvent.imageUrl})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }
+                  : undefined
+              }
+            />
             <div className="space-y-2 p-4">
               <h2 className="text-2xl font-bold leading-tight">{topEvent.title}</h2>
               <p className="text-sm text-muted-foreground line-clamp-2">{topEvent.snippet}</p>
               <span className="inline-flex items-center justify-center rounded-full sunset-bg px-5 py-2.5 text-sm font-semibold text-primary-foreground glow">
-                Zum Event →
+                Go to event →
               </span>
             </div>
           </a>
         ) : (
-          <p className="text-xs text-muted-foreground">Keine Eventdaten verfuegbar.</p>
+          <p className="text-xs text-muted-foreground">No event data available.</p>
         )}
 
         {moreEvents.length > 0 && (
@@ -71,10 +84,24 @@ export default function Home() {
                 href={event.url}
                 target="_blank"
                 rel="noreferrer"
-                className="block glass rounded-[var(--radius)] p-3 transition hover:translate-y-[-1px]"
+                className="block overflow-hidden glass rounded-[var(--radius)] transition hover:translate-y-[-1px]"
               >
-                <p className="text-sm font-semibold leading-snug line-clamp-2">{event.title}</p>
-                <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{event.snippet}</p>
+                {event.imageUrl ? (
+                  <div
+                    className="h-20 w-full bg-muted"
+                    style={{
+                      backgroundImage: `linear-gradient(to top, rgba(15,15,20,0.85), rgba(15,15,20,0.2)), url(${event.imageUrl})`,
+                      backgroundSize: "cover",
+                      backgroundPosition: "center",
+                    }}
+                  />
+                ) : (
+                  <div className="h-12 dusk-bg opacity-90" />
+                )}
+                <div className="p-3 pt-2">
+                  <p className="text-sm font-semibold leading-snug line-clamp-2">{event.title}</p>
+                  <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{event.snippet}</p>
+                </div>
               </a>
             ))}
           </div>
@@ -85,9 +112,9 @@ export default function Home() {
 
       <section className="space-y-2">
         <div className="flex items-center justify-between">
-          <h2 className="text-sm font-semibold text-muted-foreground">Auch in deinem Fenster</h2>
+          <h2 className="text-sm font-semibold text-muted-foreground">Also in your window</h2>
           <Link to="/explore/list" className="text-xs font-medium text-primary hover:underline">
-            Alles ansehen →
+            View all →
           </Link>
         </div>
         <div className="grid grid-cols-2 gap-3">

@@ -18,7 +18,7 @@ export function ContextStrip({ ctx }: { ctx: ContextSignals }) {
         🕒 {String(ctx.hour).padStart(2, "0")}:{String(ctx.minute).padStart(2, "0")} · {labelOfDay(ctx.partOfDay)}
       </span>
       <span className="frosted inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5">
-        📍 Muenchen · Balanstrasse 73
+        📍 Munich · Balanstrasse 73
       </span>
       <span
         className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${
@@ -27,12 +27,12 @@ export function ContextStrip({ ctx }: { ctx: ContextSignals }) {
             : "border-warning/40 bg-warning/20 text-foreground"
         }`}
       >
-        {ctx.source === "backend" ? "Live Backend" : "Mock Fallback"}
+        {ctx.source === "backend" ? "Live backend" : "Mock fallback"}
       </span>
     </div>
   );
 }
 
 function labelOfDay(p: ContextSignals["partOfDay"]) {
-  return ({ morning: "Morgen", midday: "Mittag", afternoon: "Nachmittag", evening: "Abend", night: "Nacht" } as const)[p];
+  return ({ morning: "Morning", midday: "Midday", afternoon: "Afternoon", evening: "Evening", night: "Night" } as const)[p];
 }

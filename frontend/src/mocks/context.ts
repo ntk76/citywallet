@@ -35,17 +35,23 @@ export type ContextSignals = {
   location: LatLng;
   timeslotMin: TimeslotMinutes;
   source: "mock" | "backend";
-  events: Array<{ title: string; url: string; snippet: string }>;
+  events: Array<{
+    title: string;
+    url: string;
+    snippet: string;
+    imageUrl?: string;
+    imageSource?: "tavily" | "og";
+  }>;
   eventsSource: "tavily" | "fallback";
   livePois: LivePoi[];
 };
 
 const conditions: Weather[] = [
-  { condition: "sunny", temperatureC: 24, emoji: "☀️", label: "Sonnig" },
+  { condition: "sunny", temperatureC: 24, emoji: "☀️", label: "Sunny" },
   { condition: "warm", temperatureC: 28, emoji: "🌤️", label: "Warm" },
-  { condition: "cloudy", temperatureC: 17, emoji: "⛅", label: "Bewölkt" },
-  { condition: "rain", temperatureC: 12, emoji: "🌧️", label: "Regen" },
-  { condition: "cold", temperatureC: 4, emoji: "🥶", label: "Kalt" },
+  { condition: "cloudy", temperatureC: 17, emoji: "⛅", label: "Cloudy" },
+  { condition: "rain", temperatureC: 12, emoji: "🌧️", label: "Rain" },
+  { condition: "cold", temperatureC: 4, emoji: "🥶", label: "Cold" },
 ];
 
 function partOfDay(hour: number): ContextSignals["partOfDay"] {

@@ -44,13 +44,14 @@ class ContextServiceTest {
         when(tavilyService.fetchRelevantEvents()).thenReturn(
             new EventsResult(
                 List.of(
-                    new ContextEvent("e1", "https://example.com/1", "s1"),
-                    new ContextEvent("e2", "https://example.com/2", "s2"),
-                    new ContextEvent("e3", "https://example.com/3", "s3")
+                    new ContextEvent("e1", "https://example.com/1", "s1", null),
+                    new ContextEvent("e2", "https://example.com/2", "s2", null),
+                    new ContextEvent("e3", "https://example.com/3", "s3", null)
                 ),
                 "fallback",
                 false,
-                "note"
+                "note",
+                null
             )
         );
 

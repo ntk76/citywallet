@@ -4,6 +4,7 @@ import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { POIS, categoryMeta } from "@/mocks/pois";
 import { useContextSignals } from "@/lib/context-api";
+import { useCustomerPois } from "@/lib/customer-pois";
 import { mapsLink } from "@/lib/geo";
 import { Link } from "react-router-dom";
 
@@ -16,7 +17,8 @@ L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
 
 export default function ExploreMap() {
   const ctx = useContextSignals(30);
-  const sourcePois = ctx.livePois.length > 0 ? ctx.livePois : POIS;
+  const basePois = ctx.livePois.length > 0 ? ctx.livePois : POIS;
+  const sourcePois = useCustomerPois(basePois);
   const center: [number, number] = [ctx.location.lat, ctx.location.lng];
 
   // Force size invalidation when container becomes visible
@@ -28,8 +30,8 @@ export default function ExploreMap() {
   return (
     <div className="space-y-3">
       <header>
-        <h1 className="text-2xl font-bold"><span className="sunset-text">Karte</span></h1>
-        <p className="text-xs text-muted-foreground">{sourcePois.length} Orte · OpenStreetMap</p>
+        <h1 className="text-2xl font-bold"><span className="sunset-text">Map</span></h1>
+        <p className="text-xs text-muted-foreground">{sourcePois.length} places · OpenStreetMap</p>
       </header>
 
       <div className="overflow-hidden rounded-[var(--radius)] glass" style={{ height: "62vh" }}>
@@ -46,7 +48,7 @@ export default function ExploreMap() {
                     {categoryMeta[p.category].emoji} {categoryMeta[p.category].label}
                   </div>
                   <div className="font-semibold">{p.name}</div>
-                  <div className="text-xs opacity-70">{p.distanceM} m · {p.walkMin} Min</div>
+                  <div className="text-xs opacity-70">{p.distanceM} m · {p.walkMin} min</div>
                   <div className="flex gap-2 pt-1">
                     <Link
                       to={`/detail/${p.id}`}
@@ -60,7 +62,7 @@ export default function ExploreMap() {
                       rel="noreferrer"
                       className="rounded-full border border-border px-3 py-1 text-xs font-semibold"
                     >
-                      Navigieren
+                      Navigate
                     </a>
                   </div>
                 </div>

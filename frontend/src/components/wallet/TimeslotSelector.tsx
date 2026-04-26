@@ -9,7 +9,7 @@ export function TimeslotSelector({
   onChange: (v: TimeslotMinutes) => void;
 }) {
   return (
-    <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Zeitfenster">
+    <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Time window">
       {TIMESLOT_OPTIONS.map(({ value: v, label }) => (
         <Button
           key={v}

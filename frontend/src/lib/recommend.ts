@@ -2,6 +2,7 @@ import type { ContextSignals } from "@/mocks/context";
 import type { POI } from "@/mocks/pois";
 import type { Preferences } from "./prefs";
 import { listMerchantOffers, toDynamicOffer } from "./merchant-offers";
+import { isMockMerchantOffer } from "@/mocks/merchant";
 
 export type DynamicOffer = {
   id: string;
@@ -25,25 +26,36 @@ export type Recommendation = {
 
 function emotionalLine(ctx: ContextSignals, poi: POI): string {
   const w = ctx.weather.condition;
-  if (w === "rain" && poi.indoor) return "Regen draußen? Wir haben einen warmen Platz für dich.";
-  if (w === "cold" && poi.tags.includes("warm")) return "Kalt heute — Zeit für etwas Wärmendes.";
-  if (w === "sunny" && !poi.indoor) return "Sonne ist da — raus damit!";
-  if (ctx.partOfDay === "morning" && poi.category === "food") return "Guter Morgen. Erst mal ankommen.";
-  if (ctx.partOfDay === "evening" && poi.category === "events") return "Der Abend ruft.";
-  return "Passt gerade gut in deinen Tag.";
+  if (w === "rain" && poi.indoor) return "Rain outside? We’ve got a warm spot for you.";
+  if (w === "cold" && poi.tags.includes("warm")) return "Chilly today — time for something warming.";
+  if (w === "sunny" && !poi.indoor) return "Sun’s out — make the most of it.";
+  if (ctx.partOfDay === "morning" && poi.category === "food") return "Good morning. Ease into the day.";
+  if (ctx.partOfDay === "evening" && poi.category === "events") return "Evening energy — go for it.";
+  return "Fits your day right now.";
 }
 
 function factualLine(poi: POI, ctx: ContextSignals, discount?: number): string {
   const parts: string[] = [];
-  if (discount) parts.push(`${discount}% bei ${poi.name}`);
+  if (discount) parts.push(`${discount}% at ${poi.name}`);
   else parts.push(poi.name);
   parts.push(`${poi.distanceM} m`);
-  parts.push(`${poi.walkMin} Min`);
+  parts.push(`${poi.walkMin} min walk`);
   return parts.join(" · ");
 }
 
 function tokenize(): string {
   return Math.random().toString(36).slice(2, 10).toUpperCase();
+}
+
+function partOfDayPhrase(part: ContextSignals["partOfDay"]): string {
+  const map: Record<ContextSignals["partOfDay"], string> = {
+    morning: "the morning",
+    midday: "midday",
+    afternoon: "the afternoon",
+    evening: "the evening",
+    night: "late night",
+  };
+  return map[part];
 }
 
 export function recommend(
@@ -53,7 +65,7 @@ export function recommend(
 ): Recommendation[] {
   const activeMerchantByPoi = new Map(
     listMerchantOffers()
-      .filter((offer) => offer.active)
+      .filter((offer) => offer.active && isMockMerchantOffer(offer))
       .map((offer) => [offer.poiId, offer] as const),
   );
 
@@ -106,7 +118,7 @@ export function recommend(
           factual: factualLine(poi, ctx, discount),
           discountPct: discount,
           validForMin: Math.min(ctx.timeslotMin, 240),
-          cta: "Einlösen",
+          cta: "Redeem",
           token: tokenize(),
         };
         score += 12;
@@ -114,7 +126,7 @@ export function recommend(
 
       const reason = offer
         ? `${offer.emotional}`
-        : `Passt zu ${ctx.weather.label.toLowerCase()} & ${ctx.partOfDay}.`;
+        : `Matches ${ctx.weather.label.toLowerCase()} for ${partOfDayPhrase(ctx.partOfDay)}.`;
 
       return { poi, score, fitsTimeslot, offer, reason };
     })

@@ -1,5 +1,6 @@
 import { NavLink, Outlet } from "react-router-dom";
 import { LayoutDashboard, BadgePercent, ShieldCheck } from "lucide-react";
+import { MOCK_MERCHANT } from "@/mocks/merchant";
 
 const tabs = [
   { to: "/merchant/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -12,11 +13,14 @@ export function MerchantShell() {
     <div className="merchant-theme min-h-screen pb-24">
       <header className="sticky top-0 z-20">
         <div className="mx-auto mt-3 flex w-[min(100%-1.5rem,28rem)] items-center justify-between rounded-full glass px-4 py-2.5">
-          <h1 className="text-sm font-semibold">
-            <span className="sunset-text">Merchant</span> Console
-          </h1>
+          <div>
+            <h1 className="text-sm font-semibold leading-tight">
+              <span className="sunset-text">{MOCK_MERCHANT.displayName}</span>
+            </h1>
+            <p className="text-[11px] text-muted-foreground">Merchant Console</p>
+          </div>
           <span className="rounded-full frosted px-2 py-1 text-xs text-muted-foreground">
-            Mobile
+            Mock
           </span>
         </div>
       </header>
@@ -26,7 +30,7 @@ export function MerchantShell() {
       </main>
 
       <nav
-        aria-label="Merchant Navigation"
+        aria-label="Merchant navigation"
         className="fixed bottom-3 left-1/2 z-50 w-[min(100%-1.5rem,28rem)] -translate-x-1/2 rounded-full border border-border/70 bg-background/90 px-2 py-2 shadow-soft backdrop-blur"
       >
         <ul className="flex items-center justify-between">

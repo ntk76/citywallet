@@ -19,15 +19,15 @@ import { TIMESLOT_OPTIONS, type TimeslotMinutes } from "@/lib/timeslot";
 
 export default function Preferences() {
   const [p, setP] = useState<Preferences>(() => loadPrefs());
-  const [profileLabel, setProfileLabel] = useState("Mein Wallet");
+  const [profileLabel, setProfileLabel] = useState("My wallet");
   const [profileMethod, setProfileMethod] = useState<PaymentMethod>(p.preferredPaymentMethod);
   const [profileDetails, setProfileDetails] = useState("");
   const paymentOptions: Array<{ id: PaymentMethod; label: string }> = [
     { id: "applepay", label: "Apple Pay" },
     { id: "googlepay", label: "Google Pay" },
     { id: "paypal", label: "PayPal" },
-    { id: "card", label: "Kreditkarte" },
-    { id: "cash", label: "Bar vor Ort" },
+    { id: "card", label: "Card" },
+    { id: "cash", label: "Cash on site" },
   ];
 
   const update = (patch: Partial<Preferences>) => setP((cur) => ({ ...cur, ...patch }));
@@ -51,7 +51,7 @@ export default function Preferences() {
       const profile: PaymentProfile = {
         id: `pp-${Math.random().toString(36).slice(2, 10)}`,
         method: profileMethod,
-        label: profileLabel.trim() || "Zahlprofil",
+        label: profileLabel.trim() || "Payment profile",
         details: profileDetails.trim() || undefined,
       };
       const nextProfiles = [profile, ...cur.paymentProfiles];
@@ -74,23 +74,23 @@ export default function Preferences() {
 
   const save = () => {
     savePrefs(p);
-    toast.success("Präferenzen gespeichert");
+    toast.success("Preferences saved");
   };
   const reset = () => {
     setP(DEFAULT_PREFS);
     savePrefs(DEFAULT_PREFS);
-    toast("Auf Standard zurückgesetzt");
+    toast("Reset to defaults");
   };
 
   return (
     <div className="space-y-6">
       <header>
-        <h1 className="text-2xl font-bold"><span className="sunset-text">Profil</span></h1>
-        <p className="text-xs text-muted-foreground">Lokal gespeichert. Kein Tracking.</p>
+        <h1 className="text-2xl font-bold"><span className="sunset-text">Profile</span></h1>
+        <p className="text-xs text-muted-foreground">Stored locally. No tracking.</p>
       </header>
 
       <section className="space-y-3 glass rounded-[var(--radius)] p-4">
-        <h2 className="font-semibold">Kategorien</h2>
+        <h2 className="font-semibold">Categories</h2>
         {(Object.keys(categoryMeta) as Category[]).map((c) => (
           <div key={c} className="space-y-1">
             <div className="flex items-center justify-between text-sm">
@@ -108,10 +108,10 @@ export default function Preferences() {
       </section>
 
       <section className="space-y-3 glass rounded-[var(--radius)] p-4">
-        <h2 className="font-semibold">Budget & Reichweite</h2>
+        <h2 className="font-semibold">Budget & reach</h2>
         <div>
           <div className="flex items-center justify-between text-sm">
-            <span>Budget-Level</span><span className="text-xs text-muted-foreground">{"€".repeat(p.budget)}</span>
+            <span>Budget level</span><span className="text-xs text-muted-foreground">{"€".repeat(p.budget)}</span>
           </div>
           <Slider value={[p.budget]} min={1} max={3} step={1} onValueChange={(v) => update({ budget: v[0] as 1|2|3 })} />
         </div>
@@ -124,9 +124,9 @@ export default function Preferences() {
       </section>
 
       <section className="space-y-3 glass rounded-[var(--radius)] p-4">
-        <h2 className="font-semibold">Vorlieben</h2>
+        <h2 className="font-semibold">Preferences</h2>
         <div className="space-y-2">
-          <Label className="text-xs">Ernährung</Label>
+          <Label className="text-xs">Diet</Label>
           <div className="flex flex-wrap gap-2">
             {(["none","vegetarian","vegan","glutenfree"] as Diet[]).map((d) => (
               <Button
@@ -136,17 +136,17 @@ export default function Preferences() {
                 onClick={() => update({ diet: d })}
                 className={`rounded-full ${p.diet === d ? "sunset-bg text-primary-foreground border-0" : ""}`}
               >
-                {d === "none" ? "Egal" : d === "vegetarian" ? "Vegetarisch" : d === "vegan" ? "Vegan" : "Glutenfrei"}
+                {d === "none" ? "Any" : d === "vegetarian" ? "Vegetarian" : d === "vegan" ? "Vegan" : "Gluten-free"}
               </Button>
             ))}
           </div>
         </div>
         <div className="flex items-center justify-between">
-          <Label htmlFor="indoor" className="text-sm">Indoor bei Regen bevorzugen</Label>
+          <Label htmlFor="indoor" className="text-sm">Prefer indoor when it rains</Label>
           <Switch id="indoor" checked={p.indoorWhenRain} onCheckedChange={(v) => update({ indoorWhenRain: v })} />
         </div>
         <div className="space-y-2">
-          <Label className="text-xs">Standard-Zeitfenster</Label>
+          <Label className="text-xs">Default time window</Label>
           <div className="flex flex-wrap gap-2">
             {TIMESLOT_OPTIONS.map(({ value: s, label }) => (
               <Button
@@ -164,9 +164,9 @@ export default function Preferences() {
       </section>
 
       <section className="space-y-3 glass rounded-[var(--radius)] p-4">
-        <h2 className="font-semibold">Bezahlen in der App</h2>
+        <h2 className="font-semibold">In-app payments</h2>
         <p className="text-xs text-muted-foreground">
-          Wähle, welche Zahlungsmethoden dir beim Checkout angeboten werden.
+          Choose which payment methods appear at checkout.
         </p>
         <div className="space-y-2">
           {paymentOptions.map((option) => (
@@ -183,7 +183,7 @@ export default function Preferences() {
           ))}
         </div>
         <div className="space-y-2">
-          <Label className="text-xs">Standard-Zahlungsart</Label>
+          <Label className="text-xs">Default payment method</Label>
           <div className="flex flex-wrap gap-2">
             {paymentOptions
               .filter((option) => p.paymentMethods.includes(option.id))
@@ -201,12 +201,12 @@ export default function Preferences() {
           </div>
         </div>
         <div className="space-y-2 border-t border-border/60 pt-2">
-          <Label className="text-xs">Gespeicherte Zahlungsprofile</Label>
+          <Label className="text-xs">Saved payment profiles</Label>
           <div className="grid gap-2">
             <Input
               value={profileLabel}
               onChange={(e) => setProfileLabel(e.target.value)}
-              placeholder="Bezeichnung, z.B. Privatkarte"
+              placeholder="Label, e.g. Personal card"
             />
             <select
               value={profileMethod}
@@ -224,10 +224,10 @@ export default function Preferences() {
             <Input
               value={profileDetails}
               onChange={(e) => setProfileDetails(e.target.value)}
-              placeholder="Details, z.B. **** 4242"
+              placeholder="Details, e.g. **** 4242"
             />
             <Button size="sm" variant="outline" onClick={addPaymentProfile}>
-              Zahlungsprofil hinzufügen
+              Add payment profile
             </Button>
           </div>
           <div className="space-y-2">
@@ -245,23 +245,23 @@ export default function Preferences() {
                 </button>
                 <div className="flex items-center gap-2">
                   {p.preferredPaymentProfileId === profile.id && (
-                    <span className="rounded-full bg-success/15 px-2 py-0.5 text-[11px] text-success">Standard</span>
+                    <span className="rounded-full bg-success/15 px-2 py-0.5 text-[11px] text-success">Default</span>
                   )}
                   <Button size="sm" variant="ghost" onClick={() => removePaymentProfile(profile.id)}>
-                    Entfernen
+                    Remove
                   </Button>
                 </div>
               </div>
             ))}
             {p.paymentProfiles.length === 0 && (
-              <p className="text-xs text-muted-foreground">Noch keine Zahlungsprofile gespeichert.</p>
+              <p className="text-xs text-muted-foreground">No payment profiles saved yet.</p>
             )}
           </div>
         </div>
       </section>
 
       <div className="flex gap-2">
-        <Button onClick={save} className="flex-1 sunset-bg text-primary-foreground border-0">Speichern</Button>
+        <Button onClick={save} className="flex-1 sunset-bg text-primary-foreground border-0">Save</Button>
         <Button onClick={reset} variant="outline">Reset</Button>
       </div>
     </div>

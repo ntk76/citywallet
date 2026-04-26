@@ -36,16 +36,36 @@ class ContextControllerIntegrationTest {
     }
 
     @Test
+    void events_returnsEventsPayload() throws Exception {
+        when(tavilyService.fetchRelevantEvents()).thenReturn(
+            new EventsResult(
+                List.of(new ContextEvent("E1", "https://example.com/e1", "S1", null)),
+                "tavily",
+                false,
+                null,
+                "Stuttgart Mitte heute 2026-01-01 Events"
+            )
+        );
+
+        mockMvc.perform(get("/events"))
+            .andExpect(status().isOk())
+            .andExpect(jsonPath("$.eventsMeta.source", is("tavily")))
+            .andExpect(jsonPath("$.eventsMeta.searchQuery", is("Stuttgart Mitte heute 2026-01-01 Events")))
+            .andExpect(jsonPath("$.events.length()", is(1)));
+    }
+
+    @Test
     void context_returnsPayloadWithProvidedTimeslotHeader() throws Exception {
         when(tavilyService.fetchRelevantEvents()).thenReturn(
             new EventsResult(
                 List.of(
-                    new ContextEvent("Event 1", "https://example.com/1", "Snippet 1"),
-                    new ContextEvent("Event 2", "https://example.com/2", "Snippet 2"),
-                    new ContextEvent("Event 3", "https://example.com/3", "Snippet 3")
+                    new ContextEvent("Event 1", "https://example.com/1", "Snippet 1", null),
+                    new ContextEvent("Event 2", "https://example.com/2", "Snippet 2", null),
+                    new ContextEvent("Event 3", "https://example.com/3", "Snippet 3", null)
                 ),
                 "tavily",
                 false,
+                null,
                 null
             )
         );

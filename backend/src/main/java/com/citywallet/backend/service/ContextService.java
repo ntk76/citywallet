@@ -37,7 +37,7 @@ public class ContextService {
             timeslot,
             mockDemand(now.getHour(), timeslot),
             eventsResult.events().stream().limit(5).toList(),
-            new EventsMeta(eventsResult.source(), eventsResult.cacheHit(), eventsResult.note())
+            new EventsMeta(eventsResult.source(), eventsResult.cacheHit(), eventsResult.note(), eventsResult.searchQuery())
         );
     }
 

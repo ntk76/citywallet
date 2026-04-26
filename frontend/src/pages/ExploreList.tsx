@@ -4,6 +4,7 @@ import { recommend } from "@/lib/recommend";
 import { loadPrefs } from "@/lib/prefs";
 import { useContextSignals } from "@/lib/context-api";
 import { formatTimeslotLabel } from "@/lib/timeslot";
+import { useCustomerPois } from "@/lib/customer-pois";
 import { OfferCard } from "@/components/wallet/OfferCard";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -18,7 +19,8 @@ export default function ExploreList() {
   const [onlyFits, setOnlyFits] = useState(false);
 
   const ctx = useContextSignals(prefs.defaultTimeslot);
-  const sourcePois = ctx.livePois.length > 0 ? ctx.livePois : POIS;
+  const basePois = ctx.livePois.length > 0 ? ctx.livePois : POIS;
+  const sourcePois = useCustomerPois(basePois);
 
   const items = useMemo(() => {
     const filtered = cat === "all" ? sourcePois : sourcePois.filter((p) => p.category === cat);
@@ -34,9 +36,9 @@ export default function ExploreList() {
   return (
     <div className="space-y-4">
       <header>
-        <h1 className="text-2xl font-bold"><span className="sunset-text">Erkunde</span> deine Stadt</h1>
+        <h1 className="text-2xl font-bold"><span className="sunset-text">Explore</span> your city</h1>
         <p className="text-xs text-muted-foreground">
-          {items.length} Vorschläge · Fenster {formatTimeslotLabel(ctx.timeslotMin)}
+          {items.length} picks · window {formatTimeslotLabel(ctx.timeslotMin)}
         </p>
       </header>
 
@@ -44,7 +46,7 @@ export default function ExploreList() {
         <div className="flex gap-2">
           {cats.map((c) => {
             const active = c === cat;
-            const label = c === "all" ? "Alle" : `${categoryMeta[c].emoji} ${categoryMeta[c].label}`;
+            const label = c === "all" ? "All" : `${categoryMeta[c].emoji} ${categoryMeta[c].label}`;
             return (
               <Button
                 key={c}
@@ -69,12 +71,12 @@ export default function ExploreList() {
             onClick={() => setSort(s)}
             className="rounded-full"
           >
-            {s === "relevance" ? "Relevanz" : s === "distance" ? "Nähe" : "Geöffnet"}
+            {s === "relevance" ? "Relevance" : s === "distance" ? "Distance" : "Open now"}
           </Button>
         ))}
         <div className="ml-auto flex items-center gap-2">
           <Switch id="fits" checked={onlyFits} onCheckedChange={setOnlyFits} />
-          <Label htmlFor="fits" className="text-xs">Passt ins Fenster</Label>
+          <Label htmlFor="fits" className="text-xs">Fits time window</Label>
         </div>
       </div>
 
@@ -83,7 +85,7 @@ export default function ExploreList() {
           <OfferCard key={r.poi.id} rec={r} />
         ))}
         {items.length === 0 && (
-          <p className="text-center text-sm text-muted-foreground py-12">Nichts passt — Filter lockern?</p>
+          <p className="text-center text-sm text-muted-foreground py-12">Nothing fits — loosen filters?</p>
         )}
       </div>
     </div>
