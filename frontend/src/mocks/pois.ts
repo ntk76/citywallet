@@ -33,7 +33,7 @@ export type POI = {
 export const POIS: POI[] = [
   {
     id: "cafe-mueller",
-    name: "Café Müller",
+    name: "Mueller Cafe",
     category: "food",
     location: { lat: 48.1389, lng: 11.5732 },
     walkMin: 4,

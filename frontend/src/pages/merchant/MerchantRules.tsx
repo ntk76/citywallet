@@ -10,12 +10,12 @@ export default function MerchantRules() {
   return (
     <div className="space-y-4">
       <section className="glass rounded-[var(--radius)] p-4">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">Rules</p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">Policies</p>
         <h2 className="mt-1 text-xl font-bold">
-          <span className="sunset-text">Rules</span>
+          <span className="sunset-text">Rules & checks</span>
         </h2>
         <p className="mt-1 text-sm text-muted-foreground">
-          Review rules before activating new offers.
+          Review compliance before you turn new offers live.
         </p>
       </section>
 

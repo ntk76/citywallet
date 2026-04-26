@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { NavLink, Outlet } from "react-router-dom";
 import { LayoutDashboard, BadgePercent, ShieldCheck } from "lucide-react";
 import { MOCK_MERCHANT } from "@/mocks/merchant";
@@ -9,6 +10,14 @@ const tabs = [
 ];
 
 export function MerchantShell() {
+  useEffect(() => {
+    const previous = document.title;
+    document.title = `Merchant · ${MOCK_MERCHANT.displayName}`;
+    return () => {
+      document.title = previous;
+    };
+  }, []);
+
   return (
     <div className="merchant-theme min-h-screen pb-24">
       <header className="sticky top-0 z-20">
@@ -17,10 +26,10 @@ export function MerchantShell() {
             <h1 className="text-sm font-semibold leading-tight">
               <span className="sunset-text">{MOCK_MERCHANT.displayName}</span>
             </h1>
-            <p className="text-[11px] text-muted-foreground">Merchant Console</p>
+            <p className="text-[11px] text-muted-foreground">Partner console</p>
           </div>
           <span className="rounded-full frosted px-2 py-1 text-xs text-muted-foreground">
-            Mock
+            Demo
           </span>
         </div>
       </header>

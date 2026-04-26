@@ -13,7 +13,7 @@ const stats = [
   { label: "Active offers", value: "12", icon: Ticket },
   { label: "Redemptions today", value: "84", icon: TrendingUp },
   { label: "New customers", value: "27", icon: Users },
-  { label: "Avg. response time", value: "3 min", icon: Clock3 },
+  { label: "Pending confirmations", value: "0", icon: Clock3 },
 ];
 
 export default function MerchantDashboard() {
@@ -43,8 +43,8 @@ export default function MerchantDashboard() {
       ? { ...item, value: String(activeOffers) }
       : item.label === "Redemptions today"
         ? { ...item, value: String(payments.length) }
-        : item.label === "Avg. response time"
-          ? { ...item, value: `${pendingPayments.length} open` }
+        : item.label === "Pending confirmations"
+          ? { ...item, value: String(pendingPayments.length) }
           : item,
   );
 
@@ -53,15 +53,15 @@ export default function MerchantDashboard() {
   return (
     <div className="space-y-4">
       <section className="glass rounded-[var(--radius)] p-4">
-        <p className="text-xs uppercase tracking-wide text-muted-foreground">Your business (mock)</p>
+        <p className="text-xs uppercase tracking-wide text-muted-foreground">Your business (demo)</p>
         <h2 className="mt-1 text-xl font-bold">
           <span className="sunset-text">{MOCK_MERCHANT.displayName}</span>
         </h2>
         <p className="mt-1 text-xs text-muted-foreground">{MOCK_MERCHANT.tagline}</p>
         {homePoi && (
           <p className="mt-2 text-xs text-muted-foreground">
-            Linked customer POI: <span className="font-medium text-foreground">{homePoi.name}</span> (
-            <code className="text-[11px]">{homePoi.id}</code>) — offers appear there for customers.
+            Linked customer place: <span className="font-medium text-foreground">{homePoi.name}</span> (
+            <code className="text-[11px]">{homePoi.id}</code>) — active offers surface there in the customer app.
           </p>
         )}
         {homePoi && (
@@ -69,7 +69,7 @@ export default function MerchantDashboard() {
             to={`/detail/${homePoi.id}`}
             className="mt-2 inline-block text-xs font-medium text-primary underline"
           >
-            Customer view for this place →
+            Open customer view for this place →
           </Link>
         )}
       </section>
@@ -102,7 +102,7 @@ export default function MerchantDashboard() {
           <article key={payment.id} className="rounded-xl border border-border p-3">
             <p className="text-sm font-medium">{payment.poiName ?? "Unknown place"}</p>
             <p className="text-xs text-muted-foreground">
-              {payment.totalEur.toFixed(2)} EUR · {payment.method} · {payment.transactionId}
+              {payment.totalEur.toFixed(2)} EUR · {payment.method} · ref {payment.transactionId}
             </p>
             <button
               onClick={() => confirmPaymentTransaction(payment.id)}

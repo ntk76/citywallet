@@ -6,10 +6,11 @@ import { POIS } from "@/mocks/pois";
  */
 export const MOCK_MERCHANT = {
   id: "merchant-demo-cafe-mueller",
-  displayName: "Café Müller",
+  /** Demo merchant display name (aligned with linked POI name in mocks/pois). */
+  displayName: "Mueller Cafe",
   heroPoiId: "cafe-mueller",
   /** Short line for the merchant console */
-  tagline: "Demo partner · mock data",
+  tagline: "Demo partner · sample data",
 } as const;
 
 export function getMerchantHomePoi() {

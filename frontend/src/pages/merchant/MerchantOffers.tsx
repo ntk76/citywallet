@@ -50,8 +50,8 @@ export default function MerchantOffers() {
     <div className="space-y-4">
       <section className="glass flex items-center justify-between rounded-[var(--radius)] p-4">
         <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Offers</p>
-          <h2 className="text-xl font-bold">Offers</h2>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Catalog</p>
+          <h2 className="text-xl font-bold">Your offers</h2>
         </div>
         <button
           onClick={onCreateOffer}
@@ -139,9 +139,9 @@ export default function MerchantOffers() {
             </article>
           );
         })}
-        {items.length === 0 && (
+        {items.filter(isMockMerchantOffer).length === 0 && (
           <p className="rounded-[var(--radius)] border border-dashed border-border p-4 text-sm text-muted-foreground">
-            No merchant offers created yet.
+            No offers yet. Use Create to add one for this location.
           </p>
         )}
       </section>
