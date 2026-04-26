@@ -17,7 +17,7 @@ export async function payInvoice(method: PaymentMethod, amountEur: number): Prom
       success: false,
       method,
       amountEur,
-      message: "Zahlung fehlgeschlagen. Bitte Methode wechseln oder erneut versuchen.",
+      message: "Payment failed. Try another method or try again.",
     };
   }
 
@@ -25,7 +25,7 @@ export async function payInvoice(method: PaymentMethod, amountEur: number): Prom
     success: true,
     method,
     amountEur,
-    message: "Zahlung erfolgreich abgeschlossen.",
+    message: "Payment completed successfully.",
     transactionId: `TX-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
   };
 }

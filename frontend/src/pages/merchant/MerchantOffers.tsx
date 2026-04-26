@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from "react";
 import { Plus, PauseCircle, PlayCircle } from "lucide-react";
-import { POIS } from "@/mocks/pois";
+import { MOCK_MERCHANT, getMerchantHomePoi, isMockMerchantOffer } from "@/mocks/merchant";
 import {
   createMerchantOffer,
   listMerchantOffers,
@@ -10,12 +10,16 @@ import {
 
 export default function MerchantOffers() {
   const [items, setItems] = useState<MerchantOffer[]>([]);
-  const [poiId, setPoiId] = useState(POIS[0]?.id ?? "");
-  const [headline, setHeadline] = useState("20% auf ausgewählte Artikel");
+  const homePoi = useMemo(() => getMerchantHomePoi(), []);
+  const [headline, setHeadline] = useState("20% off selected items");
   const [discountPct, setDiscountPct] = useState(20);
   const [validForMin, setValidForMin] = useState(30);
 
-  const poiMap = useMemo(() => new Map(POIS.map((poi) => [poi.id, poi])), []);
+  const poiMap = useMemo(() => {
+    const m = new Map<string, { name: string }>();
+    if (homePoi) m.set(homePoi.id, { name: homePoi.name });
+    return m;
+  }, [homePoi]);
 
   useEffect(() => {
     const refresh = () => setItems(listMerchantOffers());
@@ -29,13 +33,13 @@ export default function MerchantOffers() {
   }, []);
 
   function onCreateOffer() {
-    const poi = poiMap.get(poiId);
-    if (!poi) return;
+    if (!homePoi) return;
     createMerchantOffer({
-      poiId,
+      merchantId: MOCK_MERCHANT.id,
+      poiId: MOCK_MERCHANT.heroPoiId,
       headline,
-      emotional: `Nur für kurze Zeit bei ${poi.name}.`,
-      factual: `${discountPct}% bei ${poi.name} · ${poi.distanceM} m`,
+      emotional: `Limited time at ${homePoi.name}.`,
+      factual: `${discountPct}% at ${homePoi.name} · ${homePoi.distanceM} m`,
       discountPct,
       validForMin,
       active: true,
@@ -46,34 +50,27 @@ export default function MerchantOffers() {
     <div className="space-y-4">
       <section className="glass flex items-center justify-between rounded-[var(--radius)] p-4">
         <div>
-          <p className="text-xs uppercase tracking-wide text-muted-foreground">Offers</p>
-          <h2 className="text-xl font-bold">Angebote</h2>
+          <p className="text-xs uppercase tracking-wide text-muted-foreground">Catalog</p>
+          <h2 className="text-xl font-bold">Your offers</h2>
         </div>
         <button
           onClick={onCreateOffer}
-          className="inline-flex items-center gap-1 rounded-full sunset-bg px-3 py-2 text-xs font-semibold text-primary-foreground"
+          disabled={!homePoi}
+          className="inline-flex items-center gap-1 rounded-full sunset-bg px-3 py-2 text-xs font-semibold text-primary-foreground disabled:opacity-50"
         >
           <Plus className="h-3.5 w-3.5" />
-          Erstellen
+          Create
         </button>
       </section>
 
       <section className="glass space-y-3 rounded-[var(--radius)] p-4">
-        <h3 className="text-sm font-semibold">Neues Angebot</h3>
-        <label className="grid gap-1 text-xs">
-          Standort
-          <select
-            value={poiId}
-            onChange={(e) => setPoiId(e.target.value)}
-            className="rounded-lg border border-border bg-background px-3 py-2 text-sm"
-          >
-            {POIS.map((poi) => (
-              <option key={poi.id} value={poi.id}>
-                {poi.name}
-              </option>
-            ))}
-          </select>
-        </label>
+        <h3 className="text-sm font-semibold">New offer</h3>
+        <p className="rounded-lg border border-border bg-background/60 px-3 py-2 text-sm">
+          <span className="font-medium">{MOCK_MERCHANT.displayName}</span>
+          {homePoi ? (
+            <span className="text-muted-foreground"> · {homePoi.name} (POI {homePoi.id})</span>
+          ) : null}
+        </p>
         <label className="grid gap-1 text-xs">
           Headline
           <input
@@ -84,7 +81,7 @@ export default function MerchantOffers() {
         </label>
         <div className="grid grid-cols-2 gap-2">
           <label className="grid gap-1 text-xs">
-            Rabatt %
+            Discount %
             <input
               type="number"
               min={5}
@@ -95,7 +92,7 @@ export default function MerchantOffers() {
             />
           </label>
           <label className="grid gap-1 text-xs">
-            Gültig (Min)
+            Valid (min)
             <input
               type="number"
               min={10}
@@ -109,7 +106,7 @@ export default function MerchantOffers() {
       </section>
 
       <section className="space-y-3">
-        {items.map((offer) => {
+        {items.filter(isMockMerchantOffer).map((offer) => {
           const paused = !offer.active;
           const poiName = poiMap.get(offer.poiId)?.name ?? offer.poiId;
           return (
@@ -118,7 +115,7 @@ export default function MerchantOffers() {
                 <div>
                   <h3 className="text-sm font-semibold">{offer.headline}</h3>
                   <p className="mt-1 text-xs text-muted-foreground">
-                    {poiName} · {offer.discountPct}% · {offer.validForMin} Min
+                    {poiName} · {offer.discountPct}% · {offer.validForMin} min
                   </p>
                 </div>
                 <span
@@ -126,7 +123,7 @@ export default function MerchantOffers() {
                     paused ? "bg-warning/20 text-foreground" : "bg-success/15 text-success"
                   }`}
                 >
-                  {paused ? "Pausiert" : "Aktiv"}
+                  {paused ? "Paused" : "Active"}
                 </span>
               </div>
 
@@ -136,15 +133,15 @@ export default function MerchantOffers() {
                   className="inline-flex items-center gap-1 rounded-full border border-border px-3 py-1.5 text-xs"
                 >
                   {paused ? <PlayCircle className="h-3.5 w-3.5" /> : <PauseCircle className="h-3.5 w-3.5" />}
-                  {paused ? "Fortsetzen" : "Pausieren"}
+                  {paused ? "Resume" : "Pause"}
                 </button>
               </div>
             </article>
           );
         })}
-        {items.length === 0 && (
+        {items.filter(isMockMerchantOffer).length === 0 && (
           <p className="rounded-[var(--radius)] border border-dashed border-border p-4 text-sm text-muted-foreground">
-            Noch keine Merchant-Angebote erstellt.
+            No offers yet. Use Create to add one for this location.
           </p>
         )}
       </section>

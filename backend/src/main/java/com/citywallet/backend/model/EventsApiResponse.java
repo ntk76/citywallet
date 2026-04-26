@@ -4,11 +4,10 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 import java.util.List;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
-public record EventsResult(
+public record EventsApiResponse(
     List<ContextEvent> events,
-    String source,
-    boolean cacheHit,
-    String note,
-    String searchQuery
+    EventsMeta eventsMeta,
+    List<ContextEvent> dining,
+    EventsMeta diningMeta
 ) {
 }

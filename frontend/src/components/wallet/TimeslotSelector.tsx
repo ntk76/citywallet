@@ -1,29 +1,27 @@
 import { Button } from "@/components/ui/button";
-
-const SLOTS: Array<15 | 30 | 60> = [15, 30, 60];
+import { TIMESLOT_OPTIONS, type TimeslotMinutes } from "@/lib/timeslot";
 
 export function TimeslotSelector({
   value,
   onChange,
 }: {
-  value: 15 | 30 | 60;
-  onChange: (v: 15 | 30 | 60) => void;
+  value: TimeslotMinutes;
+  onChange: (v: TimeslotMinutes) => void;
 }) {
   return (
-    <div className="flex items-center gap-2" role="radiogroup" aria-label="Zeitfenster">
-      <span className="text-xs text-muted-foreground mr-1">Ich habe</span>
-      {SLOTS.map((s) => (
+    <div className="flex flex-wrap items-center gap-2" role="radiogroup" aria-label="Time window">
+      {TIMESLOT_OPTIONS.map(({ value: v, label }) => (
         <Button
-          key={s}
+          key={v}
           type="button"
           role="radio"
-          aria-checked={value === s}
-          variant={value === s ? "default" : "outline"}
+          aria-checked={value === v}
+          variant={value === v ? "default" : "outline"}
           size="sm"
-          onClick={() => onChange(s)}
-          className={value === s ? "sunset-bg text-primary-foreground border-0" : ""}
+          onClick={() => onChange(v)}
+          className={`shrink-0 rounded-full ${value === v ? "sunset-bg text-primary-foreground border-0" : ""}`}
         >
-          {s} Min
+          {label}
         </Button>
       ))}
     </div>

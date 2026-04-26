@@ -5,6 +5,8 @@ const KEY = "citywallet.merchant.offers.v1";
 
 export type MerchantOffer = {
   id: string;
+  /** Demo: fixed merchant id from mocks/merchant.ts */
+  merchantId?: string;
   poiId: string;
   headline: string;
   emotional: string;
@@ -48,7 +50,7 @@ export function toDynamicOffer(offer: MerchantOffer): DynamicOffer {
     factual: offer.factual,
     discountPct: offer.discountPct,
     validForMin: offer.validForMin,
-    cta: "Einlösen",
+    cta: "Redeem",
     token: `MRC-${offer.id.slice(-6).toUpperCase()}`,
   };
 }

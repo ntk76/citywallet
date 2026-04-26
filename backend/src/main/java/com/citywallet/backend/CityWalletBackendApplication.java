@@ -7,6 +7,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 public class CityWalletBackendApplication {
 
     public static void main(String[] args) {
+        LocalDotenvLoader.load();
         SpringApplication.run(CityWalletBackendApplication.class, args);
     }
 }

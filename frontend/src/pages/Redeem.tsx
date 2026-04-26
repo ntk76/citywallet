@@ -76,8 +76,8 @@ export default function Redeem() {
     applepay: "Apple Pay",
     googlepay: "Google Pay",
     paypal: "PayPal",
-    card: "Kreditkarte",
-    cash: "Bar vor Ort",
+    card: "Card",
+    cash: "Cash on site",
   };
   const amountValue = Number(amount.replace(",", ".")) || 0;
   const discountPct = pct ? Number(pct) : 0;
@@ -87,9 +87,9 @@ export default function Redeem() {
   return (
     <div className="space-y-5">
       <header>
-        <h1 className="text-2xl font-bold"><span className="sunset-text">Einlösen</span></h1>
+        <h1 className="text-2xl font-bold"><span className="sunset-text">Redeem</span></h1>
         <p className="text-xs text-muted-foreground">
-          {poi ? `Für ${poi.name}${pct ? ` · ${pct}% Rabatt` : ""}` : "Zeige dem Händler den QR-Code."}
+          {poi ? `For ${poi.name}${pct ? ` · ${pct}% off` : ""}` : "Show the merchant this QR code."}
         </p>
       </header>
 
@@ -104,17 +104,17 @@ export default function Redeem() {
       </div>
 
       <div className="space-y-2">
-        <label className="text-xs text-muted-foreground">Manuell prüfen</label>
+        <label className="text-xs text-muted-foreground">Verify manually</label>
         <div className="flex gap-2">
           <Input value={token} onChange={(e) => setToken(e.target.value.toUpperCase())} className="font-mono" />
-          <Button variant="outline" onClick={newToken}>Neu</Button>
+          <Button variant="outline" onClick={newToken}>New</Button>
         </div>
         <Button
           onClick={submit}
           disabled={loading}
           className="w-full sunset-bg text-primary-foreground border-0"
         >
-          {loading ? "Prüfe…" : "Simulations-Checkout"}
+          {loading ? "Checking…" : "Simulated checkout"}
         </Button>
       </div>
 
@@ -127,7 +127,7 @@ export default function Redeem() {
         >
           {result.success ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
           <div>
-            <p className="font-semibold">{result.success ? "Eingelöst" : "Fehlgeschlagen"}</p>
+            <p className="font-semibold">{result.success ? "Redeemed" : "Failed"}</p>
             <p className="text-sm opacity-80">{result.message}</p>
           </div>
         </div>
@@ -135,20 +135,20 @@ export default function Redeem() {
 
       <section className="space-y-3 glass rounded-[var(--radius)] p-4">
         <div>
-          <h2 className="text-base font-semibold">Rechnung bezahlen</h2>
+          <h2 className="text-base font-semibold">Pay invoice</h2>
           <p className="text-xs text-muted-foreground">
-            Angebot einlösen und Rechnung in einem Flow abschließen.
+            Redeem the offer and settle the bill in one flow.
           </p>
         </div>
 
         {prefs.paymentMethods.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            Keine Zahlungsart aktiv. <Link to="/preferences" className="underline">Im Profil aktivieren</Link>.
+            No payment method enabled. <Link to="/preferences" className="underline">Turn on in profile</Link>.
           </p>
         ) : (
           <>
             <label className="text-xs text-muted-foreground">
-              Betrag in EUR
+              Amount (EUR)
               <Input
                 value={amount}
                 onChange={(e) => setAmount(e.target.value)}
@@ -159,14 +159,14 @@ export default function Redeem() {
             {discountPct > 0 && (
               <div className="rounded-xl frosted p-3 text-sm">
                 <p className="font-medium">Split Payment</p>
-                <p className="text-muted-foreground">Rechnung: {amountValue.toFixed(2)} EUR</p>
-                <p className="text-success">Rabatt ({discountPct}%): -{discountEur.toFixed(2)} EUR</p>
-                <p className="mt-1 font-semibold">Zu zahlen: {totalEur.toFixed(2)} EUR</p>
+                <p className="text-muted-foreground">Invoice: {amountValue.toFixed(2)} EUR</p>
+                <p className="text-success">Discount ({discountPct}%): -{discountEur.toFixed(2)} EUR</p>
+                <p className="mt-1 font-semibold">To pay: {totalEur.toFixed(2)} EUR</p>
               </div>
             )}
             {prefs.paymentProfiles.length > 0 && (
               <label className="text-xs text-muted-foreground">
-                Gespeichertes Zahlungsprofil
+                Saved payment profile
                 <select
                   value={selectedProfileId}
                   onChange={(e) => {
@@ -177,7 +177,7 @@ export default function Redeem() {
                   }}
                   className="mt-1 w-full rounded-md border border-border bg-background px-3 py-2 text-sm"
                 >
-                  <option value="">Kein Profil</option>
+                  <option value="">No profile</option>
                   {prefs.paymentProfiles.map((profile) => (
                     <option key={profile.id} value={profile.id}>
                       {profile.label} ({paymentLabels[profile.method]})
@@ -204,7 +204,7 @@ export default function Redeem() {
               disabled={payLoading}
               className="w-full sunset-bg text-primary-foreground border-0"
             >
-              {payLoading ? "Bezahle..." : `Jetzt mit ${paymentLabels[paymentMethod]} bezahlen`}
+              {payLoading ? "Paying…" : `Pay with ${paymentLabels[paymentMethod]}`}
             </Button>
           </>
         )}
@@ -219,7 +219,7 @@ export default function Redeem() {
         >
           {payResult.success ? <CheckCircle2 className="h-5 w-5" /> : <XCircle className="h-5 w-5" />}
           <div>
-            <p className="font-semibold">{payResult.success ? "Zahlung erfolgreich" : "Zahlung fehlgeschlagen"}</p>
+            <p className="font-semibold">{payResult.success ? "Payment successful" : "Payment failed"}</p>
             <p className="text-sm opacity-80">
               {payResult.message}
               {payResult.transactionId ? ` · ${payResult.transactionId}` : ""}

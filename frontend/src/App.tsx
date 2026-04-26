@@ -34,11 +34,11 @@ const App = () => (
             <Route path="/detail/:id" element={<Detail />} />
             <Route path="/redeem" element={<Redeem />} />
           </Route>
-          <Route path="/merchant" element={<Navigate to="/merchant/dashboard" replace />} />
           <Route path="/merchant" element={<MerchantShell />}>
-            <Route path="rules" element={<MerchantRules />} />
-            <Route path="offers" element={<MerchantOffers />} />
+            <Route index element={<Navigate to="dashboard" replace />} />
             <Route path="dashboard" element={<MerchantDashboard />} />
+            <Route path="offers" element={<MerchantOffers />} />
+            <Route path="rules" element={<MerchantRules />} />
           </Route>
           <Route path="*" element={<NotFound />} />
         </Routes>

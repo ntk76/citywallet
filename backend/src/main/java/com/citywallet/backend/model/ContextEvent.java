@@ -1,4 +1,12 @@
 package com.citywallet.backend.model;
 
-public record ContextEvent(String title, String url, String snippet) {
+import com.fasterxml.jackson.annotation.JsonInclude;
+
+@JsonInclude(JsonInclude.Include.NON_NULL)
+public record ContextEvent(
+    String title,
+    String url,
+    String snippet,
+    String imageUrl
+) {
 }
