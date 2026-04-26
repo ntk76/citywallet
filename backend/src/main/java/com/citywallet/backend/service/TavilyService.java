@@ -42,11 +42,11 @@ public class TavilyService {
     private int timeoutMs;
 
     /** City name for the “events today” Tavily query (aligned with {@link com.citywallet.backend.model.Location} by default). */
-    @Value("${citywallet.events.city:Stuttgart}")
+    @Value("${citywallet.events.city:München}")
     private String eventsCity;
 
-    /** Region / neighbourhood for the query, e.g. Mitte, Balanstrasse. */
-    @Value("${citywallet.events.region:Mitte}")
+    /** Region / neighbourhood for the query, e.g. Balanstraße, Obergiesing. */
+    @Value("${citywallet.events.region:Balanstraße}")
     private String eventsRegion;
 
     /** Time zone used for “today” in the search query. */

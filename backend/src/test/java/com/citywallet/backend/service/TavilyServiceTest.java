@@ -16,8 +16,8 @@ class TavilyServiceTest {
         ReflectionTestUtils.setField(service, "apiKey", "");
         ReflectionTestUtils.setField(service, "cacheTtlMinutes", 20);
         ReflectionTestUtils.setField(service, "timeoutMs", 1000);
-        ReflectionTestUtils.setField(service, "eventsCity", "Stuttgart");
-        ReflectionTestUtils.setField(service, "eventsRegion", "Mitte");
+        ReflectionTestUtils.setField(service, "eventsCity", "München");
+        ReflectionTestUtils.setField(service, "eventsRegion", "Balanstraße");
         ReflectionTestUtils.setField(service, "eventsTimezone", "Europe/Berlin");
 
         EventsResult first = service.fetchRelevantEvents();

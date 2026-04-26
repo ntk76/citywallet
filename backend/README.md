@@ -7,7 +7,7 @@ Leichtgewichtiges Spring-Boot-Backend mit `GET /context` und `GET /events`.
 - `GET /events` — aktuelle Events (Tavily-Suche mit **heutigem Datum** in `Europe/Berlin`, siehe `citywallet.events.*` in `application.properties`), Antwort: `events[]` + `eventsMeta` (`source`, `cacheHit`, `note`, optional `searchQuery`).
 - `GET /context` liefert:
   - `time` (ISO)
-  - `location` (`city=Stuttgart`, `region=Mitte`)
+  - `location` (`city=München`, `region=Balanstraße` — per `EVENTS_SEARCH_*`, Standard wie in `application.properties`)
   - `weather` (zeitbasiertes Mock)
   - `timeslot` aus Header `X-Timeslot: 30|60|120|720|1440` (Default `30`, Werte in Minuten)
   - `demandProxy` (Mock)

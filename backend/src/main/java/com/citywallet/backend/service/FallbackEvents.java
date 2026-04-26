@@ -7,35 +7,36 @@ public final class FallbackEvents {
     private FallbackEvents() {
     }
 
+    /** Curated Munich sources; many events sit near Obergiesing / Ostbahnhof and Balanstraße. */
     public static final List<ContextEvent> EVENTS = List.of(
         new ContextEvent(
-            "Staatsgalerie Stuttgart - Aktuelle Ausstellungen",
-            "https://www.staatsgalerie.de/",
-            "Kunst-Highlights mit wechselnden Ausstellungen im Zentrum von Stuttgart.",
+            "muenchen.de — Veranstaltungskalender",
+            "https://www.muenchen.de/rubriken/08-veranstaltungen/kalender.html",
+            "Offizieller Kalender der Landeshauptstadt: Konzerte, Märkte, Feste und Kultur in ganz München.",
             null
         ),
         new ContextEvent(
-            "Stuttgart-Marketing - Events und Veranstaltungen heute",
-            "https://www.stuttgart-tourist.de/",
-            "Offizielle Uebersicht zu Veranstaltungen, Touren und Stadt-Highlights.",
+            "München Ticket — Events & Vorstellungen",
+            "https://www.muenchenticket.de/",
+            "Tickets und Termine für Theater, Konzerte und Hallen — gut filterbar nach Stadtteil und Datum.",
             null
         ),
         new ContextEvent(
-            "Markthalle Stuttgart - Kulinarische Entdeckungen",
-            "https://www.stuttgart.de/markthalle",
-            "Beliebter Spot in Mitte fuer Food, regionale Produkte und kurze Besuche.",
+            "Muffatwerk — Konzerte & Club am Isarufer",
+            "https://www.muffatwerk.de/",
+            "Kultur am Isarhang: nur wenige Minuten von Balanstraße und Obergiesing, viele Abend-Highlights.",
             null
         ),
         new ContextEvent(
-            "Wilhelma Stuttgart - Zoo und Botanischer Garten",
-            "https://www.wilhelma.de/",
-            "Ausflugstipp mit wechselnden Programmpunkten und Indoor/Outdoor-Bereichen.",
+            "Gasteig — Kulturprogramm München",
+            "https://www.gasteig.de/",
+            "Philharmonie, Kurse und Veranstaltungen; mit U-Bahn schnell von der Balanstraße aus erreichbar.",
             null
         ),
         new ContextEvent(
-            "Liederhalle Stuttgart - Konzerte und Kultur",
-            "https://www.liederhalle-stuttgart.de/",
-            "Abendprogramm mit Musik, Kultur und Buehnenveranstaltungen in der Innenstadt.",
+            "Deutsches Museum — Ausstellungen & Events",
+            "https://www.deutsches-museum.de/",
+            "Dauerausstellungen und Sonderveranstaltungen; von der Balanstraße per ÖPNV Richtung Innenstadt.",
             null
         )
     );

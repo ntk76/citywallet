@@ -8,15 +8,24 @@ import com.citywallet.backend.model.Location;
 import com.citywallet.backend.model.WeatherMock;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ContextService {
 
     private final TavilyService tavilyService;
+    private final String eventsCity;
+    private final String eventsRegion;
 
-    public ContextService(TavilyService tavilyService) {
+    public ContextService(
+        TavilyService tavilyService,
+        @Value("${citywallet.events.city:München}") String eventsCity,
+        @Value("${citywallet.events.region:Balanstraße}") String eventsRegion
+    ) {
         this.tavilyService = tavilyService;
+        this.eventsCity = eventsCity;
+        this.eventsRegion = eventsRegion;
     }
 
     public int parseTimeslot(String value) {
@@ -32,7 +41,7 @@ public class ContextService {
 
         return new ContextResponse(
             now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
-            new Location("Stuttgart", "Mitte"),
+            new Location(eventsCity, eventsRegion),
             mockWeather(now.getHour()),
             timeslot,
             mockDemand(now.getHour(), timeslot),

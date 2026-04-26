@@ -43,14 +43,14 @@ class ContextControllerIntegrationTest {
                 "tavily",
                 false,
                 null,
-                "Stuttgart Mitte heute 2026-01-01 Events"
+                "München Balanstraße heute 2026-01-01 Events Veranstaltungen Konzerte Highlights"
             )
         );
 
         mockMvc.perform(get("/events"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.eventsMeta.source", is("tavily")))
-            .andExpect(jsonPath("$.eventsMeta.searchQuery", is("Stuttgart Mitte heute 2026-01-01 Events")))
+            .andExpect(jsonPath("$.eventsMeta.searchQuery", is("München Balanstraße heute 2026-01-01 Events Veranstaltungen Konzerte Highlights")))
             .andExpect(jsonPath("$.events.length()", is(1)));
     }
 
@@ -73,7 +73,7 @@ class ContextControllerIntegrationTest {
         mockMvc.perform(get("/context").header("X-Timeslot", "60"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.timeslot", is(60)))
-            .andExpect(jsonPath("$.location.city", is("Stuttgart")))
+            .andExpect(jsonPath("$.location.city", is("München")))
             .andExpect(jsonPath("$.eventsMeta.source", is("tavily")))
             .andExpect(jsonPath("$.events.length()", is(3)));
     }
