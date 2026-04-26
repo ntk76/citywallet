@@ -1,8 +1,8 @@
 import { useMemo, useState } from "react";
-import { fetchContext } from "@/mocks/context";
 import { POIS, categoryMeta, type Category } from "@/mocks/pois";
 import { recommend } from "@/lib/recommend";
 import { loadPrefs } from "@/lib/prefs";
+import { useBackendContextData } from "@/lib/context-api";
 import { OfferCard } from "@/components/wallet/OfferCard";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -16,7 +16,7 @@ export default function ExploreList() {
   const [sort, setSort] = useState<Sort>("relevance");
   const [onlyFits, setOnlyFits] = useState(false);
 
-  const ctx = useMemo(() => fetchContext(prefs.defaultTimeslot), [prefs.defaultTimeslot]);
+  const { context: ctx, events, eventsMeta, isLoading } = useBackendContextData(prefs.defaultTimeslot);
 
   const items = useMemo(() => {
     const filtered = cat === "all" ? POIS : POIS.filter((p) => p.category === cat);
@@ -82,6 +82,29 @@ export default function ExploreList() {
           <p className="text-center text-sm text-muted-foreground py-12">Nichts passt — Filter lockern?</p>
         )}
       </div>
+
+      <section className="space-y-2 rounded-[var(--radius)] border border-border p-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-sm font-semibold">Backend Events</h2>
+          <span className="text-[11px] text-muted-foreground">
+            {eventsMeta.source} {eventsMeta.cacheHit ? "(Cache)" : "(Live)"}
+          </span>
+        </div>
+        {isLoading && <p className="text-xs text-muted-foreground">Lade Events...</p>}
+        {!isLoading && events.length === 0 && <p className="text-xs text-muted-foreground">Keine Events verfügbar.</p>}
+        {events.map((event) => (
+          <a
+            key={event.url}
+            href={event.url}
+            target="_blank"
+            rel="noreferrer"
+            className="block rounded-lg border border-border px-3 py-2 hover:border-primary/40"
+          >
+            <p className="text-sm font-medium leading-snug">{event.title}</p>
+            <p className="text-xs text-muted-foreground line-clamp-2">{event.snippet}</p>
+          </a>
+        ))}
+      </section>
     </div>
   );
 }

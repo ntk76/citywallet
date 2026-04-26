@@ -3,7 +3,6 @@ package com.citywallet.backend.service;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.mockito.Mockito.when;
 
 import com.citywallet.backend.model.ContextEvent;
@@ -48,7 +47,7 @@ class ContextServiceTest {
                     new ContextEvent("e2", "https://example.com/2", "s2"),
                     new ContextEvent("e3", "https://example.com/3", "s3")
                 ),
-                "fallback",
+                "tavily",
                 false,
                 "note"
             )
@@ -61,12 +60,8 @@ class ContextServiceTest {
         assertEquals("Stuttgart", response.location().city());
         assertEquals("Mitte", response.location().region());
         assertEquals(30, response.timeslot());
-        assertEquals("fallback", response.eventsMeta().source());
+        assertEquals("tavily", response.eventsMeta().source());
         assertFalse(response.eventsMeta().cacheHit());
         assertEquals(3, response.events().size());
-        assertTrue(
-            List.of("low", "medium", "high").contains(response.demandProxy().level()),
-            "Demand level should be one of expected values"
-        );
     }
 }

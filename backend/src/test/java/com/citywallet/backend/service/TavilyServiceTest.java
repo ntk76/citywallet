@@ -20,13 +20,13 @@ class TavilyServiceTest {
         EventsResult first = service.fetchRelevantEvents();
         EventsResult second = service.fetchRelevantEvents();
 
-        assertEquals("fallback", first.source());
+        assertEquals("tavily", first.source());
         assertFalse(first.cacheHit());
         assertTrue(first.note().contains("TAVILY_API_KEY"));
-        assertEquals(5, first.events().size());
+        assertEquals(0, first.events().size());
 
-        assertEquals("fallback", second.source());
-        assertTrue(second.cacheHit());
-        assertEquals(5, second.events().size());
+        assertEquals("tavily", second.source());
+        assertFalse(second.cacheHit());
+        assertEquals(0, second.events().size());
     }
 }

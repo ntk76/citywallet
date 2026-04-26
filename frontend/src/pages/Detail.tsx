@@ -1,9 +1,9 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMemo } from "react";
 import { fetchPoi, categoryMeta } from "@/mocks/pois";
-import { fetchContext } from "@/mocks/context";
 import { recommend } from "@/lib/recommend";
 import { loadPrefs } from "@/lib/prefs";
+import { useBackendContext } from "@/lib/context-api";
 import { mapsLink } from "@/lib/geo";
 import { Countdown } from "@/components/wallet/OfferCard";
 import { Button } from "@/components/ui/button";
@@ -15,7 +15,7 @@ export default function Detail() {
   const poi = fetchPoi(id);
 
   const prefs = useMemo(() => loadPrefs(), []);
-  const ctx = useMemo(() => fetchContext(prefs.defaultTimeslot), [prefs.defaultTimeslot]);
+  const ctx = useBackendContext(prefs.defaultTimeslot);
   const rec = useMemo(() => (poi ? recommend([poi], ctx, prefs)[0] : undefined), [poi, ctx, prefs]);
 
   if (!poi || !rec) {

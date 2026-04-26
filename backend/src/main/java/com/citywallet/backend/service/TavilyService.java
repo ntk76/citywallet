@@ -45,15 +45,14 @@ public class TavilyService {
             return new EventsResult(cached.value.events(), cached.value.source(), true, cached.value.note());
         }
 
-        if (apiKey == null || apiKey.isBlank()) {
-            EventsResult fallback = withFallback("TAVILY_API_KEY fehlt.", false);
-            putCache(now, ttlMinutes, fallback);
-            return fallback;
+        String effectiveApiKey = sanitizeApiKey(apiKey);
+        if (effectiveApiKey.isBlank()) {
+            return new EventsResult(List.of(), "tavily", false, "TAVILY_API_KEY fehlt.");
         }
 
         try {
             String body = jsonMapper.writeValueAsString(Map.of(
-                "api_key", apiKey,
+                "api_key", effectiveApiKey,
                 "query", QUERY,
                 "search_depth", "basic",
                 "max_results", 5,
@@ -65,32 +64,51 @@ public class TavilyService {
                 .uri(URI.create(TAVILY_URL))
                 .timeout(Duration.ofMillis(timeoutMs))
                 .header("Content-Type", "application/json")
+                .header("Authorization", "Bearer " + effectiveApiKey)
                 .POST(HttpRequest.BodyPublishers.ofString(body))
                 .build();
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
             if (response.statusCode() < 200 || response.statusCode() >= 300) {
-                EventsResult fallback = withFallback("Tavily HTTP " + response.statusCode() + ".", false);
-                putCache(now, ttlMinutes, fallback);
-                return fallback;
+                return new EventsResult(
+                    List.of(),
+                    "tavily",
+                    false,
+                    "Tavily HTTP " + response.statusCode() + formatErrorDetail(response.body())
+                );
             }
 
             JsonNode root = jsonMapper.readTree(response.body());
             List<ContextEvent> events = parseEvents(root);
-            if (events.size() < 3) {
-                EventsResult fallback = withFallback("Zu wenige Tavily-Treffer.", false);
-                putCache(now, ttlMinutes, fallback);
-                return fallback;
-            }
-
             EventsResult success = new EventsResult(events.subList(0, Math.min(5, events.size())), "tavily", false, null);
             putCache(now, ttlMinutes, success);
             return success;
         } catch (Exception ex) {
-            EventsResult fallback = withFallback("Tavily Timeout oder Netzfehler.", false);
-            putCache(now, ttlMinutes, fallback);
-            return fallback;
+            return new EventsResult(List.of(), "tavily", false, "Tavily Timeout oder Netzfehler.");
         }
+    }
+
+    private String sanitizeApiKey(String value) {
+        if (value == null) {
+            return "";
+        }
+        String trimmed = value.trim();
+        if (
+            (trimmed.startsWith("\"") && trimmed.endsWith("\"")) ||
+            (trimmed.startsWith("'") && trimmed.endsWith("'"))
+        ) {
+            return trimmed.substring(1, trimmed.length() - 1).trim();
+        }
+        return trimmed;
+    }
+
+    private String formatErrorDetail(String responseBody) {
+        if (responseBody == null || responseBody.isBlank()) {
+            return ".";
+        }
+        String compact = responseBody.replaceAll("\\s+", " ").trim();
+        String snippet = compact.substring(0, Math.min(140, compact.length()));
+        return ": " + snippet;
     }
 
     private void putCache(long now, int ttlMinutes, EventsResult result) {
@@ -121,10 +139,6 @@ public class TavilyService {
             events.add(new ContextEvent(title, url, snippet));
         }
         return events;
-    }
-
-    private EventsResult withFallback(String note, boolean cacheHit) {
-        return new EventsResult(FallbackEvents.EVENTS.subList(0, 5), "fallback", cacheHit, note);
     }
 
     private record CacheEntry(EventsResult value, long expiresAt) {

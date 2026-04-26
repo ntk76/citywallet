@@ -1,9 +1,9 @@
-import { useMemo, useEffect } from "react";
+import { useEffect } from "react";
 import { MapContainer, TileLayer, Marker, Popup } from "react-leaflet";
 import L from "leaflet";
 import "leaflet/dist/leaflet.css";
 import { POIS, categoryMeta } from "@/mocks/pois";
-import { fetchContext } from "@/mocks/context";
+import { useBackendContext } from "@/lib/context-api";
 import { mapsLink } from "@/lib/geo";
 import { Link } from "react-router-dom";
 
@@ -15,7 +15,7 @@ import shadowUrl from "leaflet/dist/images/marker-shadow.png";
 L.Icon.Default.mergeOptions({ iconUrl, iconRetinaUrl, shadowUrl });
 
 export default function ExploreMap() {
-  const ctx = useMemo(() => fetchContext(), []);
+  const ctx = useBackendContext(30);
   const center: [number, number] = [ctx.location.lat, ctx.location.lng];
 
   // Force size invalidation when container becomes visible
