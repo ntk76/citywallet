@@ -1,6 +1,6 @@
-# City Wallet Backend (MVP)
+# City Wallet Backend (Java 25 + Gradle)
 
-Leichtgewichtiges Node/TypeScript-Backend mit einem Endpoint `GET /context`.
+Leichtgewichtiges Spring-Boot-Backend mit Endpoint `GET /context`.
 
 ## Features
 
@@ -16,29 +16,33 @@ Leichtgewichtiges Node/TypeScript-Backend mit einem Endpoint `GET /context`.
 - In-Memory-Cache (10-30 Minuten, default 20) zur Credit-Schonung.
 - Robuste Fehlerbehandlung: Bei Tavily-Fehler/Timeout immer `200` mit Fallback-Events.
 
+## Voraussetzungen
+
+- Java 25
+- Gradle (oder Gradle Wrapper)
+
 ## Setup
 
-1. Abhaengigkeiten installieren:
-   ```bash
-   npm install
-   ```
-2. ENV anlegen:
+1. ENV anlegen:
    ```bash
    cp .env.example .env
    ```
-3. In `.env` deinen Tavily-Key eintragen:
+2. In `.env` deinen Tavily-Key eintragen:
    - `TAVILY_API_KEY=...`
 
 ## Start
 
-- Dev:
+- Dev/Run:
   ```bash
-  npm run dev
+  gradle bootRun
   ```
-- Prod-Build:
+- Build:
   ```bash
-  npm run build
-  npm start
+  gradle build
+  ```
+- Jar starten:
+  ```bash
+  java -jar build/libs/citywallet-backend-1.0.0.jar
   ```
 
 ## Test (curl)
@@ -52,24 +56,3 @@ PowerShell:
 ```powershell
 Invoke-RestMethod -Uri "http://localhost:8787/context" -Headers @{"X-Timeslot"="30"} | ConvertTo-Json -Depth 6
 ```
-
-Beispielantwort:
-
-```json
-{
-  "time": "2026-04-25T22:00:00.000Z",
-  "location": { "city": "Stuttgart", "region": "Mitte" },
-  "weather": { "condition": "cloudy", "tempC": 14, "label": "Bedeckt und mild" },
-  "timeslot": 30,
-  "demandProxy": { "level": "medium", "score": 0.58, "reason": "Normale Auslastung" },
-  "events": [
-    { "title": "Event 1", "url": "https://...", "snippet": "..." }
-  ],
-  "eventsMeta": { "source": "tavily", "cacheHit": false }
-}
-```
-
-## Deploy-Hinweise
-
-- Geeignet fuer Vercel/Render/Railway als Node-Service.
-- Wichtig: `TAVILY_API_KEY` nur als Server-Secret setzen, niemals ins Frontend geben.
