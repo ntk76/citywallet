@@ -43,6 +43,15 @@ export type ContextSignals = {
     imageSource?: "tavily" | "og";
   }>;
   eventsSource: "tavily" | "fallback";
+  /** Restaurants / cafés / bars from backend Tavily (or fallback). */
+  dining: Array<{
+    title: string;
+    url: string;
+    snippet: string;
+    imageUrl?: string;
+    imageSource?: "tavily" | "og";
+  }>;
+  diningSource: "tavily" | "fallback";
   livePois: LivePoi[];
 };
 
@@ -82,6 +91,8 @@ export function fetchContext(timeslotMin: TimeslotMinutes | number = 30): Contex
     source: "mock",
     events: [],
     eventsSource: "fallback",
+    dining: [],
+    diningSource: "fallback",
     livePois: [],
   };
 }

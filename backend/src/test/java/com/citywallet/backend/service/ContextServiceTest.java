@@ -54,6 +54,15 @@ class ContextServiceTest {
                 null
             )
         );
+        when(tavilyService.fetchRelevantDining()).thenReturn(
+            new EventsResult(
+                List.of(new ContextEvent("d1", "https://example.com/d1", "sd", null)),
+                "tavily",
+                false,
+                null,
+                "dining-q"
+            )
+        );
 
         ContextService service = new ContextService(tavilyService, "Munich", "Balanstrasse");
         ContextResponse response = service.buildContext(30);
@@ -65,6 +74,8 @@ class ContextServiceTest {
         assertEquals("fallback", response.eventsMeta().source());
         assertFalse(response.eventsMeta().cacheHit());
         assertEquals(3, response.events().size());
+        assertEquals("tavily", response.diningMeta().source());
+        assertEquals(1, response.dining().size());
         assertTrue(
             List.of("low", "medium", "high").contains(response.demandProxy().level()),
             "Demand level should be one of expected values"

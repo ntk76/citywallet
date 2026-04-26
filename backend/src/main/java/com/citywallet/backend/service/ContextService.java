@@ -38,6 +38,7 @@ public class ContextService {
     public ContextResponse buildContext(int timeslot) {
         ZonedDateTime now = ZonedDateTime.now();
         EventsResult eventsResult = tavilyService.fetchRelevantEvents();
+        EventsResult diningResult = tavilyService.fetchRelevantDining();
 
         return new ContextResponse(
             now.format(DateTimeFormatter.ISO_OFFSET_DATE_TIME),
@@ -46,7 +47,9 @@ public class ContextService {
             timeslot,
             mockDemand(now.getHour(), timeslot),
             eventsResult.events().stream().limit(5).toList(),
-            new EventsMeta(eventsResult.source(), eventsResult.cacheHit(), eventsResult.note(), eventsResult.searchQuery())
+            new EventsMeta(eventsResult.source(), eventsResult.cacheHit(), eventsResult.note(), eventsResult.searchQuery()),
+            diningResult.events().stream().limit(5).toList(),
+            new EventsMeta(diningResult.source(), diningResult.cacheHit(), diningResult.note(), diningResult.searchQuery())
         );
     }
 

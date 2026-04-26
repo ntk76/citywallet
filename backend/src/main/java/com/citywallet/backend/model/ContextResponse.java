@@ -9,6 +9,8 @@ public record ContextResponse(
     int timeslot,
     DemandProxy demandProxy,
     List<ContextEvent> events,
-    EventsMeta eventsMeta
+    EventsMeta eventsMeta,
+    List<ContextEvent> dining,
+    EventsMeta diningMeta
 ) {
 }

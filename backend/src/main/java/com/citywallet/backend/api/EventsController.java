@@ -28,6 +28,13 @@ public class EventsController {
             result.note(),
             result.searchQuery()
         );
-        return new EventsApiResponse(result.events(), meta);
+        EventsResult dining = tavilyService.fetchRelevantDining();
+        EventsMeta diningMeta = new EventsMeta(
+            dining.source(),
+            dining.cacheHit(),
+            dining.note(),
+            dining.searchQuery()
+        );
+        return new EventsApiResponse(result.events(), meta, dining.events(), diningMeta);
     }
 }

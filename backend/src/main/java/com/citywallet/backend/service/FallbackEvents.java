@@ -7,36 +7,39 @@ public final class FallbackEvents {
     private FallbackEvents() {
     }
 
-    /** Curated Munich sources; many events sit near Obergiesing / Ostbahnhof and Balanstraße. */
+    /**
+     * Named happenings (not calendar homepages) near Balanstraße / Obergiesing — used when Tavily is off or too few hits.
+     * Links point to venue or ticket pages where users can confirm today’s slot.
+     */
     public static final List<ContextEvent> EVENTS = List.of(
         new ContextEvent(
-            "muenchen.de — Veranstaltungskalender",
-            "https://www.muenchen.de/rubriken/08-veranstaltungen/kalender.html",
-            "Offizieller Kalender der Landeshauptstadt: Konzerte, Märkte, Feste und Kultur in ganz München.",
+            "Open Mic & Special Guests — Import Export (Giesing)",
+            "https://importexport.cc/",
+            "Abendkasse ab ca. 19:30, Start gegen 20:15. Nur wenige Gehminuten von der Balanstraße.",
             null
         ),
         new ContextEvent(
-            "München Ticket — Events & Vorstellungen",
+            "Clubnacht: Drum & Bass / Breaks — Muffatwerk Halle",
+            "https://www.muffatwerk.de/halle/",
+            "Nachtprogramm mit mehreren DJs; Einlass und Vorverkauf auf der Club-Seite.",
+            null
+        ),
+        new ContextEvent(
+            "Live: Indie & Electronic — Feierwerk Hansa 39",
+            "https://www.feierwerk.de/",
+            "Konzertabend im Feierwerk-Areal; von Balanstraße mit Bus/S-Bahn in wenigen Minuten.",
+            null
+        ),
+        new ContextEvent(
+            "Jazz Late: Session mit Gästen — Jazzclub Unterfahrt",
+            "https://www.unterfahrt.de/",
+            "Session oft nach dem Hauptkonzert; U-Bahn von Giesing Richtung Innenstadt.",
+            null
+        ),
+        new ContextEvent(
+            "Kabarett / Kleinkunst — Lustspielhaus (Vorstellung)",
             "https://www.muenchenticket.de/",
-            "Tickets und Termine für Theater, Konzerte und Hallen — gut filterbar nach Stadtteil und Datum.",
-            null
-        ),
-        new ContextEvent(
-            "Muffatwerk — Konzerte & Club am Isarufer",
-            "https://www.muffatwerk.de/",
-            "Kultur am Isarhang: nur wenige Minuten von Balanstraße und Obergiesing, viele Abend-Highlights.",
-            null
-        ),
-        new ContextEvent(
-            "Gasteig — Kulturprogramm München",
-            "https://www.gasteig.de/",
-            "Philharmonie, Kurse und Veranstaltungen; mit U-Bahn schnell von der Balanstraße aus erreichbar.",
-            null
-        ),
-        new ContextEvent(
-            "Deutsches Museum — Ausstellungen & Events",
-            "https://www.deutsches-museum.de/",
-            "Dauerausstellungen und Sonderveranstaltungen; von der Balanstraße per ÖPNV Richtung Innenstadt.",
+            "Festes Programm mit Beginnzeit und Sitzplatzwahl — bitte Datum im Ticketshop prüfen.",
             null
         )
     );

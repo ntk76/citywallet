@@ -3,6 +3,30 @@ import { fetchContext, type ContextSignals } from "@/mocks/context";
 import type { POI, Category } from "@/mocks/pois";
 import { normalizeTimeslot, type TimeslotMinutes } from "@/lib/timeslot";
 
+type BackendEventItem = {
+  title: string;
+  url: string;
+  snippet: string;
+  imageUrl?: string;
+  imageSource?: "tavily" | "og";
+};
+
+type BackendEventsMeta = {
+  source: "tavily" | "fallback";
+  cacheHit: boolean;
+  note?: string;
+  /** Tavily search phrase used by the backend (Munich / Balanstrasse by default). */
+  searchQuery?: string;
+};
+
+/** `GET /events` — events + dining from Tavily (two queries on the backend). */
+type BackendEventsPayload = {
+  events: BackendEventItem[];
+  eventsMeta?: BackendEventsMeta;
+  dining?: BackendEventItem[];
+  diningMeta?: BackendEventsMeta;
+};
+
 type BackendContext = {
   time: string;
   weather: {
@@ -18,20 +42,8 @@ type BackendContext = {
     url: string;
     snippet: string;
   }>;
-  events: Array<{
-    title: string;
-    url: string;
-    snippet: string;
-    imageUrl?: string;
-    imageSource?: "tavily" | "og";
-  }>;
-  eventsMeta?: {
-    source: "tavily" | "fallback";
-    cacheHit: boolean;
-    note?: string;
-    /** Tavily search phrase used by the backend (when returned). */
-    searchQuery?: string;
-  };
+  events: BackendEventItem[];
+  eventsMeta?: BackendEventsMeta;
   weatherMeta?: {
     source: "tavily" | "fallback";
     cacheHit: boolean;
@@ -102,19 +114,77 @@ async function fetchLiveContext(timeslotMin: TimeslotMinutes): Promise<ContextSi
   const cached = cache.get(key);
   if (cached && cached.expiresAt > now) return cached.value;
 
+  let contextRes: Response;
+  let eventsRes: Response;
   try {
-    const response = await fetch(`${API_BASE}/context`, {
-      headers: {
-        "X-Timeslot": String(timeslotMin),
-      },
+    [contextRes, eventsRes] = await Promise.all([
+      fetch(`${API_BASE}/context`, {
+        headers: {
+          "X-Timeslot": String(timeslotMin),
+        },
+      }),
+      fetch(`${API_BASE}/events`),
+    ]);
+  } catch {
+    console.warn("[context-api] backend fetch failed, using mock", { timeslotMin, apiBase: API_BASE });
+    return fetchContext(timeslotMin);
+  }
+
+  let eventsPayload: BackendEventsPayload | null = null;
+  if (eventsRes.ok) {
+    try {
+      eventsPayload = (await eventsRes.json()) as BackendEventsPayload;
+    } catch {
+      eventsPayload = null;
+    }
+  }
+
+  if (!contextRes.ok) {
+    if (eventsPayload?.events?.length) {
+      const base = fetchContext(timeslotMin);
+      const merged: ContextSignals = {
+        ...base,
+        source: "backend",
+        events: eventsPayload.events,
+        eventsSource: eventsPayload.eventsMeta?.source ?? "fallback",
+        dining: eventsPayload.dining ?? [],
+        diningSource: eventsPayload.diningMeta?.source ?? "fallback",
+      };
+      console.info("[context-api] /context unavailable; using /events only", {
+        timeslotMin,
+        apiBase: API_BASE,
+        eventsSource: merged.eventsSource,
+        searchQuery: eventsPayload.eventsMeta?.searchQuery,
+      });
+      cache.set(key, { value: merged, expiresAt: now + 60_000 });
+      return merged;
+    }
+    console.warn("[context-api] /context not ok and no /events", {
+      timeslotMin,
+      apiBase: API_BASE,
+      contextStatus: contextRes.status,
+      eventsStatus: eventsRes.status,
     });
+    return fetchContext(timeslotMin);
+  }
 
-    if (!response.ok) return fetchContext(timeslotMin);
-
-    const json = (await response.json()) as BackendContext;
+  try {
+    const json = (await contextRes.json()) as BackendContext;
     const date = new Date(json.time);
     const hour = date.getHours();
     const minute = date.getMinutes();
+
+    const eventsList = eventsPayload?.events?.length ? eventsPayload.events : (json.events ?? []);
+    const eventsSource = eventsPayload?.events?.length
+      ? (eventsPayload.eventsMeta?.source ?? "fallback")
+      : (json.eventsMeta?.source ?? "fallback");
+
+    const diningList = eventsPayload?.dining?.length
+      ? eventsPayload.dining
+      : (json.dining ?? []);
+    const diningSource = eventsPayload?.dining?.length
+      ? (eventsPayload.diningMeta?.source ?? "fallback")
+      : (json.diningMeta?.source ?? "fallback");
 
     const mapped: ContextSignals = {
       weather: {
@@ -128,24 +198,37 @@ async function fetchLiveContext(timeslotMin: TimeslotMinutes): Promise<ContextSi
       partOfDay: partOfDay(hour),
       location: MUENCHEN_BALANSTRASSE_73,
       timeslotMin: normalizeTimeslot(json.timeslot),
-      source: json.eventsMeta?.source === "tavily" || json.weatherMeta?.source === "tavily" ? "backend" : "mock",
-      events: json.events ?? [],
-      eventsSource: json.eventsMeta?.source ?? "fallback",
+      source:
+        eventsSource === "tavily" ||
+        diningSource === "tavily" ||
+        json.eventsMeta?.source === "tavily" ||
+        json.diningMeta?.source === "tavily" ||
+        json.weatherMeta?.source === "tavily"
+          ? "backend"
+          : "mock",
+      events: eventsList,
+      eventsSource,
+      dining: diningList,
+      diningSource,
       livePois: mapDiscoveriesToPois(json.discoveries ?? []),
     };
 
-    console.info("[context-api] backend /context success", {
+    console.info("[context-api] backend /context + /events", {
       timeslotMin,
       apiBase: API_BASE,
-      eventsSource: json.eventsMeta?.source,
-      weatherSource: json.weatherMeta?.source,
-      eventsCacheHit: json.eventsMeta?.cacheHit,
-      weatherCacheHit: json.weatherMeta?.cacheHit,
+      eventsSource: mapped.eventsSource,
+      diningSource: mapped.diningSource,
+      eventsFromEndpoint: Boolean(eventsPayload?.events?.length),
+      diningFromEndpoint: Boolean(eventsPayload?.dining?.length),
+      eventsSearchQuery: eventsPayload?.eventsMeta?.searchQuery ?? json.eventsMeta?.searchQuery,
+      diningSearchQuery: eventsPayload?.diningMeta?.searchQuery ?? json.diningMeta?.searchQuery,
+      contextEventsCacheHit: json.eventsMeta?.cacheHit,
+      eventsEndpointCacheHit: eventsPayload?.eventsMeta?.cacheHit,
     });
     cache.set(key, { value: mapped, expiresAt: now + 60_000 });
     return mapped;
   } catch {
-    console.warn("[context-api] backend /context failed, using mock fallback", { timeslotMin, apiBase: API_BASE });
+    console.warn("[context-api] /context JSON error, using mock", { timeslotMin, apiBase: API_BASE });
     return fetchContext(timeslotMin);
   }
 }

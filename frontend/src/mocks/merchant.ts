@@ -5,12 +5,12 @@ import { POIS } from "@/mocks/pois";
  * Offers use `heroPoiId` so they surface in customer recommendations and detail.
  */
 export const MOCK_MERCHANT = {
-  id: "merchant-demo-cafe-mueller",
+  id: "merchant-demo-augustiner-braeustuben",
   /** Demo merchant display name (aligned with linked POI name in mocks/pois). */
-  displayName: "Mueller Cafe",
-  heroPoiId: "cafe-mueller",
+  displayName: "Augustiner Bräustuben",
+  heroPoiId: "augustiner-braeustuben",
   /** Short line for the merchant console */
-  tagline: "Demo partner · sample data",
+  tagline: "Bayerische Küche · Demo partner",
 } as const;
 
 export function getMerchantHomePoi() {

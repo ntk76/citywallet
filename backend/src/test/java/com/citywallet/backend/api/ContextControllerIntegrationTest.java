@@ -32,7 +32,8 @@ class ContextControllerIntegrationTest {
     void health_returnsOkTrue() throws Exception {
         mockMvc.perform(get("/health"))
             .andExpect(status().isOk())
-            .andExpect(jsonPath("$.ok", is(true)));
+            .andExpect(jsonPath("$.ok", is(true)))
+            .andExpect(jsonPath("$.tavilyApiKeyConfigured", is(false)));
     }
 
     @Test
@@ -43,15 +44,26 @@ class ContextControllerIntegrationTest {
                 "tavily",
                 false,
                 null,
-                "Munich Balanstrasse heute 2026-01-01 Events Veranstaltungen Konzerte Highlights"
+                "Munich near Balanstrasse Obergiesing on 2026-01-01 tonight live concert theatre comedy DJ club doors open start time tickets one show"
+            )
+        );
+        when(tavilyService.fetchRelevantDining()).thenReturn(
+            new EventsResult(
+                List.of(new ContextEvent("D1", "https://example.com/d1", "SD", null)),
+                "tavily",
+                false,
+                null,
+                "Munich near Balanstrasse Obergiesing 2026-01-01 restaurant cafe"
             )
         );
 
         mockMvc.perform(get("/events"))
             .andExpect(status().isOk())
             .andExpect(jsonPath("$.eventsMeta.source", is("tavily")))
-            .andExpect(jsonPath("$.eventsMeta.searchQuery", is("Munich Balanstrasse heute 2026-01-01 Events Veranstaltungen Konzerte Highlights")))
-            .andExpect(jsonPath("$.events.length()", is(1)));
+            .andExpect(jsonPath("$.eventsMeta.searchQuery", is("Munich near Balanstrasse Obergiesing on 2026-01-01 tonight live concert theatre comedy DJ club doors open start time tickets one show")))
+            .andExpect(jsonPath("$.events.length()", is(1)))
+            .andExpect(jsonPath("$.diningMeta.source", is("tavily")))
+            .andExpect(jsonPath("$.dining.length()", is(1)));
     }
 
     @Test
@@ -69,6 +81,15 @@ class ContextControllerIntegrationTest {
                 null
             )
         );
+        when(tavilyService.fetchRelevantDining()).thenReturn(
+            new EventsResult(
+                List.of(new ContextEvent("Dine 1", "https://example.com/d", "S", null)),
+                "fallback",
+                false,
+                null,
+                null
+            )
+        );
 
         mockMvc.perform(get("/context").header("X-Timeslot", "60"))
             .andExpect(status().isOk())
@@ -76,6 +97,8 @@ class ContextControllerIntegrationTest {
             .andExpect(jsonPath("$.location.city", is("Munich")))
             .andExpect(jsonPath("$.location.region", is("Balanstrasse")))
             .andExpect(jsonPath("$.eventsMeta.source", is("tavily")))
-            .andExpect(jsonPath("$.events.length()", is(3)));
+            .andExpect(jsonPath("$.events.length()", is(3)))
+            .andExpect(jsonPath("$.diningMeta.source", is("fallback")))
+            .andExpect(jsonPath("$.dining.length()", is(1)));
     }
 }

@@ -27,3 +27,8 @@ dependencies {
 tasks.named('test') {
     useJUnitPlatform()
 }
+
+tasks.named('bootRun') {
+    // So backend/.env is resolved when Gradle is started from the monorepo root.
+    workingDir = project.projectDir
+}

@@ -1,10 +1,12 @@
 # City Wallet Backend (Java 21 + Gradle)
 
-Leichtgewichtiges Spring-Boot-Backend mit `GET /context` und `GET /events`.
+Leichtgewichtiges Spring-Boot-Backend mit `GET /health`, `GET /context` und `GET /events`.
+
+**Tavily erkennen:** `GET /health` liefert `tavilyApiKeyConfigured: true/false` (ohne Key). Liefern `GET /events` bzw. `eventsMeta.source` und `diningMeta.source` den Wert **`tavily`**, kam die Antwort aus der Tavily-API (ggf. mit weniger strengem Filter); bei **`fallback`** nicht.
 
 ## Features
 
-- `GET /events` — aktuelle Events (Tavily-Suche mit **heutigem Datum** in `Europe/Berlin`, siehe `citywallet.events.*` in `application.properties`), Antwort: `events[]` + `eventsMeta` (`source`, `cacheHit`, `note`, optional `searchQuery`).
+- `GET /events` — Events + Dining (zwei Tavily-Suchen, **heutiges Datum** in `Europe/Berlin`, siehe `citywallet.events.*` in `application.properties`): `events[]`, `eventsMeta`, `dining[]`, `diningMeta`.
 - `GET /context` liefert:
   - `time` (ISO)
   - `location` (`city=Munich`, `region=Balanstrasse` — per `EVENTS_SEARCH_*`, Standard wie in `application.properties`)
@@ -13,7 +15,7 @@ Leichtgewichtiges Spring-Boot-Backend mit `GET /context` und `GET /events`.
   - `demandProxy` (Mock)
   - `events[]` (3-5 Eintraege aus Tavily oder Fallback; optional `imageUrl` wenn Tavily `include_images` liefert)
   - `eventsMeta.source` (`tavily` oder `fallback`) + `cacheHit` + optional `searchQuery` (verwendete Suchphrase)
-- Tavily-Key nur serverseitig via ENV.
+- Tavily-Key serverseitig: **`backend/.env` wird beim Start eingelesen** (gleiche Keys wie unter Windows/Linux per `export`). Ohne gültigen Key: `eventsMeta.source` / `diningMeta.source` = `fallback`. Im Log: `Tavily enabled` vs. Warnung zu `TAVILY_API_KEY`.
 - In-Memory-Cache (5 Minuten) zur Credit-Schonung.
 - Robuste Fehlerbehandlung: Bei Tavily-Fehler/Timeout immer `200` mit Fallback-Events.
 
@@ -28,8 +30,8 @@ Leichtgewichtiges Spring-Boot-Backend mit `GET /context` und `GET /events`.
    ```bash
    cp .env.example .env
    ```
-2. In `.env` deinen Tavily-Key eintragen:
-   - `TAVILY_API_KEY=...`
+2. In `backend/.env` einen **echten** Tavily-Key eintragen (kein Platzhalter `your-tavily-api-key`):
+   - `TAVILY_API_KEY=tvly-...`
 3. Optional: `EVENTS_SEARCH_CITY`, `EVENTS_SEARCH_REGION`, `EVENTS_TIMEZONE` (siehe `application.properties`).
 
 ## Start

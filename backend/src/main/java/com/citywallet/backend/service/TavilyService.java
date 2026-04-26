@@ -15,13 +15,19 @@ import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import jakarta.annotation.PostConstruct;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
 @Service
 public class TavilyService {
+
+    private static final Logger log = LoggerFactory.getLogger(TavilyService.class);
 
     private static final int MIN_CACHE_MINUTES = 5;
     private static final int MAX_CACHE_MINUTES = 6;
@@ -53,6 +59,23 @@ public class TavilyService {
     @Value("${citywallet.events.timezone:Europe/Berlin}")
     private String eventsTimezone;
 
+    /** Exposed for {@code GET /health} — never log or return the raw key. */
+    public boolean isTavilyApiKeyConfigured() {
+        return apiKey != null && !apiKey.isBlank();
+    }
+
+    @PostConstruct
+    void logTavilyConfiguration() {
+        if (apiKey == null || apiKey.isBlank()) {
+            log.warn(
+                "TAVILY_API_KEY is not set — events and dining use static fallback. "
+                    + "Add a real key to backend/.env (see .env.example) or export TAVILY_API_KEY before bootRun."
+            );
+        } else {
+            log.info("Tavily enabled (API key length {}).", apiKey.length());
+        }
+    }
+
     public EventsResult fetchRelevantEvents() {
         String query = buildEventsSearchQuery();
         int ttlMinutes = clampCacheMinutes(cacheTtlMinutes);
@@ -73,8 +96,8 @@ public class TavilyService {
             Map<String, Object> bodyMap = new LinkedHashMap<>();
             bodyMap.put("api_key", apiKey);
             bodyMap.put("query", query);
-            bodyMap.put("search_depth", "basic");
-            bodyMap.put("max_results", 8);
+            bodyMap.put("search_depth", "advanced");
+            bodyMap.put("max_results", 15);
             bodyMap.put("include_answer", false);
             bodyMap.put("include_raw_content", false);
             bodyMap.put("include_images", true);
@@ -96,9 +119,10 @@ public class TavilyService {
             }
 
             JsonNode root = jsonMapper.readTree(response.body());
-            List<ContextEvent> events = parseEvents(root);
-            if (events.size() < 3) {
-                EventsResult fallback = withFallback("Zu wenige Tavily-Treffer.", false, query);
+            List<ContextEvent> events = widenTavilyListIfSparse(parseAndFilterEvents(root), parseEvents(root), 3);
+
+            if (events.isEmpty()) {
+                EventsResult fallback = withFallback("Tavily lieferte keine nutzbaren Treffer.", false, query);
                 putCache(query, now, ttlMinutes, fallback);
                 return fallback;
             }
@@ -115,18 +139,96 @@ public class TavilyService {
     }
 
     /**
-     * Builds a date-stamped query so Tavily returns sources relevant to <strong>today</strong> in {@link #eventsTimezone}.
+     * Restaurants, cafés and bars near the configured area (second Tavily query, own cache key).
+     */
+    public EventsResult fetchRelevantDining() {
+        String query = buildDiningSearchQuery();
+        int ttlMinutes = clampCacheMinutes(cacheTtlMinutes);
+        long now = System.currentTimeMillis();
+        CacheEntry cached = cache.get(query);
+        if (cached != null && cached.expiresAt > now) {
+            EventsResult v = cached.value;
+            return new EventsResult(v.events(), v.source(), true, v.note(), v.searchQuery());
+        }
+
+        if (apiKey == null || apiKey.isBlank()) {
+            EventsResult fallback = withDiningFallback("TAVILY_API_KEY fehlt.", false, query);
+            putCache(query, now, ttlMinutes, fallback);
+            return fallback;
+        }
+
+        try {
+            Map<String, Object> bodyMap = new LinkedHashMap<>();
+            bodyMap.put("api_key", apiKey);
+            bodyMap.put("query", query);
+            bodyMap.put("search_depth", "advanced");
+            bodyMap.put("max_results", 15);
+            bodyMap.put("include_answer", false);
+            bodyMap.put("include_raw_content", false);
+            bodyMap.put("include_images", true);
+
+            String body = jsonMapper.writeValueAsString(bodyMap);
+
+            HttpRequest request = HttpRequest.newBuilder()
+                .uri(URI.create(TAVILY_URL))
+                .timeout(Duration.ofMillis(timeoutMs))
+                .header("Content-Type", "application/json")
+                .POST(HttpRequest.BodyPublishers.ofString(body))
+                .build();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+            if (response.statusCode() < 200 || response.statusCode() >= 300) {
+                EventsResult fallback = withDiningFallback("Tavily HTTP " + response.statusCode() + ".", false, query);
+                putCache(query, now, ttlMinutes, fallback);
+                return fallback;
+            }
+
+            JsonNode root = jsonMapper.readTree(response.body());
+            List<ContextEvent> places = widenTavilyListIfSparse(parseAndFilterDining(root), parseEvents(root), 2);
+
+            if (places.isEmpty()) {
+                EventsResult fallback = withDiningFallback("Tavily lieferte keine nutzbaren Restaurant-Treffer.", false, query);
+                putCache(query, now, ttlMinutes, fallback);
+                return fallback;
+            }
+
+            List<ContextEvent> top = places.subList(0, Math.min(5, places.size()));
+            EventsResult success = new EventsResult(top, "tavily", false, null, query);
+            putCache(query, now, ttlMinutes, success);
+            return success;
+        } catch (Exception ex) {
+            EventsResult fallback = withDiningFallback("Tavily Timeout oder Netzfehler.", false, query);
+            putCache(query, now, ttlMinutes, fallback);
+            return fallback;
+        }
+    }
+
+    public String buildDiningSearchQuery() {
+        ZoneId zone = ZoneId.of(eventsTimezone);
+        ZonedDateTime today = ZonedDateTime.now(zone);
+        String datePart = today.toLocalDate().format(ISO_DATE);
+        return eventsCity
+            + " near "
+            + eventsRegion
+            + " Obergiesing "
+            + datePart
+            + " restaurant cafe bar bistro open today dinner lunch reservations menu walk-in";
+    }
+
+    /**
+     * Builds a date-stamped query aimed at <strong>single happenings</strong> (shows, gigs, club nights),
+     * not generic city event calendars, for {@link #eventsTimezone} “today”.
      */
     public String buildEventsSearchQuery() {
         ZoneId zone = ZoneId.of(eventsTimezone);
         ZonedDateTime today = ZonedDateTime.now(zone);
         String datePart = today.toLocalDate().format(ISO_DATE);
         return eventsCity
-            + " "
+            + " near "
             + eventsRegion
-            + " heute "
+            + " Obergiesing on "
             + datePart
-            + " Events Veranstaltungen Konzerte Highlights";
+            + " tonight live concert theatre comedy DJ club doors open start time tickets one show";
     }
 
     private void putCache(String cacheKey, long now, int ttlMinutes, EventsResult result) {
@@ -135,6 +237,123 @@ public class TavilyService {
 
     private int clampCacheMinutes(int value) {
         return Math.max(MIN_CACHE_MINUTES, Math.min(MAX_CACHE_MINUTES, value));
+    }
+
+    /**
+     * If strict filters remove too much, fall back to Tavily hits that only drop obvious calendar URLs,
+     * so a valid API key still returns {@code source=tavily} whenever the API returned rows.
+     */
+    private static List<ContextEvent> widenTavilyListIfSparse(
+        List<ContextEvent> filtered,
+        List<ContextEvent> rawParsed,
+        int preferAtLeast
+    ) {
+        if (filtered.size() >= preferAtLeast) {
+            return filtered;
+        }
+        List<ContextEvent> soft = new ArrayList<>();
+        for (ContextEvent e : rawParsed) {
+            if (!isHardCalendarUrl(e.url())) {
+                soft.add(e);
+            }
+        }
+        if (soft.size() >= preferAtLeast) {
+            return soft;
+        }
+        if (!soft.isEmpty()) {
+            return soft;
+        }
+        return filtered;
+    }
+
+    private List<ContextEvent> parseAndFilterEvents(JsonNode root) {
+        List<ContextEvent> raw = parseEvents(root);
+        List<ContextEvent> strict = new ArrayList<>();
+        for (ContextEvent e : raw) {
+            if (!isCalendarOrDirectoryPage(e.title(), e.url())) {
+                strict.add(e);
+            }
+        }
+        if (strict.size() >= 3) {
+            return strict;
+        }
+        List<ContextEvent> loose = new ArrayList<>();
+        for (ContextEvent e : raw) {
+            if (!isHardCalendarUrl(e.url())) {
+                loose.add(e);
+            }
+        }
+        return loose.size() > strict.size() ? loose : strict;
+    }
+
+    private List<ContextEvent> parseAndFilterDining(JsonNode root) {
+        List<ContextEvent> raw = parseEvents(root);
+        List<ContextEvent> strict = new ArrayList<>();
+        for (ContextEvent e : raw) {
+            if (!isCalendarOrDirectoryPage(e.title(), e.url()) && !isRestaurantRankingListicle(e.title(), e.url())) {
+                strict.add(e);
+            }
+        }
+        if (strict.size() >= 2) {
+            return strict;
+        }
+        List<ContextEvent> loose = new ArrayList<>();
+        for (ContextEvent e : raw) {
+            if (!isHardCalendarUrl(e.url()) && !isRestaurantRankingListicle(e.title(), e.url())) {
+                loose.add(e);
+            }
+        }
+        return loose.size() > strict.size() ? loose : strict;
+    }
+
+    private static boolean isRestaurantRankingListicle(String title, String url) {
+        String t = title.toLowerCase(Locale.ROOT);
+        String u = url.toLowerCase(Locale.ROOT);
+        if (t.contains("top 10") || t.contains("top 15") || t.contains("top 20") || t.contains("top 25")) {
+            return true;
+        }
+        if (t.contains("die besten restaurants") || t.contains("best restaurants in")) {
+            return true;
+        }
+        if (t.contains("10 best") && (t.contains("restaurant") || t.contains("dinner") || t.contains("brunch"))) {
+            return true;
+        }
+        if (u.contains("tripadvisor") && (t.contains("best") || t.contains("top "))) {
+            return true;
+        }
+        return false;
+    }
+
+    /** Drop obvious calendar URLs only (fallback if strict title+URL filter removes too much). */
+    private static boolean isHardCalendarUrl(String url) {
+        String u = url.toLowerCase(Locale.ROOT);
+        return u.contains("/kalender")
+            || u.contains("kalender.html")
+            || u.contains("/calendar")
+            || u.contains("veranstaltungskalender")
+            || u.contains("eventkalender");
+    }
+
+    private static boolean isCalendarOrDirectoryPage(String title, String url) {
+        if (isHardCalendarUrl(url)) {
+            return true;
+        }
+        String u = url.toLowerCase(Locale.ROOT);
+        String t = title.toLowerCase(Locale.ROOT);
+        if (t.contains("veranstaltungskalender") || t.contains("eventkalender")) {
+            return true;
+        }
+        if ((t.contains("kalender") || t.contains("calendar"))
+            && (t.contains("\u00fcbersicht") || t.contains("alle events"))) {
+            return true;
+        }
+        if (u.contains("muenchen.de") && u.contains("kalender")) {
+            return true;
+        }
+        if (t.contains("veranstaltungen heute") && (t.contains("marketing") || t.contains("tourist"))) {
+            return true;
+        }
+        return false;
     }
 
     private List<ContextEvent> parseEvents(JsonNode root) {
@@ -183,6 +402,10 @@ public class TavilyService {
 
     private EventsResult withFallback(String note, boolean cacheHit, String searchQuery) {
         return new EventsResult(FallbackEvents.EVENTS.subList(0, 5), "fallback", cacheHit, note, searchQuery);
+    }
+
+    private EventsResult withDiningFallback(String note, boolean cacheHit, String searchQuery) {
+        return new EventsResult(FallbackDining.PLACES, "fallback", cacheHit, note, searchQuery);
     }
 
     private record CacheEntry(EventsResult value, long expiresAt) {
