@@ -15,10 +15,19 @@ export function ContextStrip({ ctx }: { ctx: ContextSignals }) {
         {ctx.weather.label} · {ctx.weather.temperatureC}°C
       </span>
       <span className="frosted inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5">
-        🕒 {String(ctx.hour).padStart(2, "0")}:00 · {labelOfDay(ctx.partOfDay)}
+        🕒 {String(ctx.hour).padStart(2, "0")}:{String(ctx.minute).padStart(2, "0")} · {labelOfDay(ctx.partOfDay)}
       </span>
       <span className="frosted inline-flex items-center gap-1.5 rounded-full border border-border px-3 py-1.5">
-        📍 München Zentrum
+        📍 Muenchen · Balanstrasse 73
+      </span>
+      <span
+        className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 ${
+          ctx.source === "backend"
+            ? "border-success/40 bg-success/10 text-success"
+            : "border-warning/40 bg-warning/20 text-foreground"
+        }`}
+      >
+        {ctx.source === "backend" ? "Live Backend" : "Mock Fallback"}
       </span>
     </div>
   );

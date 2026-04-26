@@ -7,13 +7,14 @@ Leichtgewichtiges Node/TypeScript-Backend mit einem Endpoint `GET /context`.
 - `GET /context` liefert:
   - `time` (ISO)
   - `location` (`city=Stuttgart`, `region=Mitte`)
-  - `weather` (Mock)
-  - `timeslot` aus Header `X-Timeslot: 15|30|60` (Default `30`)
+  - `weather` (aus Tavily, mit Mock-Fallback)
+  - `timeslot` aus Header `X-Timeslot: 30|60|120|720|1440` (Default `30`, Werte in Minuten)
   - `demandProxy` (Mock)
   - `events[]` (3-5 Eintraege aus Tavily oder Fallback)
   - `eventsMeta.source` (`tavily` oder `fallback`) + `cacheHit`
+  - `weatherMeta.source` (`tavily` oder `fallback`) + `cacheHit`
 - Tavily-Key nur serverseitig via ENV.
-- In-Memory-Cache (10-30 Minuten, default 20) zur Credit-Schonung.
+- In-Memory-Cache (5 Minuten) zur Credit-Schonung.
 - Robuste Fehlerbehandlung: Bei Tavily-Fehler/Timeout immer `200` mit Fallback-Events.
 
 ## Setup

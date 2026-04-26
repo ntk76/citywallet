@@ -1,9 +1,10 @@
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { useMemo } from "react";
-import { fetchPoi, categoryMeta } from "@/mocks/pois";
-import { fetchContext } from "@/mocks/context";
+import { POIS, fetchPoi, categoryMeta } from "@/mocks/pois";
 import { recommend } from "@/lib/recommend";
 import { loadPrefs } from "@/lib/prefs";
+import { useContextSignals } from "@/lib/context-api";
+import { formatTimeslotLabel } from "@/lib/timeslot";
 import { mapsLink } from "@/lib/geo";
 import { Countdown } from "@/components/wallet/OfferCard";
 import { Button } from "@/components/ui/button";
@@ -12,10 +13,13 @@ import { ArrowLeft, MapPin, Clock, Tag } from "lucide-react";
 export default function Detail() {
   const { id = "" } = useParams();
   const nav = useNavigate();
-  const poi = fetchPoi(id);
-
   const prefs = useMemo(() => loadPrefs(), []);
-  const ctx = useMemo(() => fetchContext(prefs.defaultTimeslot), [prefs.defaultTimeslot]);
+  const ctx = useContextSignals(prefs.defaultTimeslot);
+  const sourcePois = ctx.livePois.length > 0 ? ctx.livePois : POIS;
+  const poi = useMemo(
+    () => sourcePois.find((entry) => entry.id === id) ?? fetchPoi(id),
+    [sourcePois, id],
+  );
   const rec = useMemo(() => (poi ? recommend([poi], ctx, prefs)[0] : undefined), [poi, ctx, prefs]);
 
   if (!poi || !rec) {
@@ -70,7 +74,7 @@ export default function Detail() {
           <Clock className="h-3 w-3" /> {poi.walkMin} Min Fußweg
         </span>
         <span className={`rounded-full px-3 py-1.5 ${fitsTimeslot ? "bg-success/15 text-success" : "bg-warning/20 text-foreground"}`}>
-          {fitsTimeslot ? `Passt in ${ctx.timeslotMin} Min` : `Knapp für ${ctx.timeslotMin} Min`}
+          {fitsTimeslot ? `Passt in ${formatTimeslotLabel(ctx.timeslotMin)}` : `Knapp für ${formatTimeslotLabel(ctx.timeslotMin)}`}
         </span>
         <span className="frosted rounded-full border border-border px-3 py-1.5">{"€".repeat(poi.priceLevel)}</span>
       </div>

@@ -1,5 +1,17 @@
+export type TimeslotMinutes = 30 | 60 | 120 | 720 | 1440;
+
 export type ContextEvent = {
   title: string;
+  url: string;
+  snippet: string;
+};
+
+export type DiscoveryCategory = "food" | "events" | "markets" | "museums" | "shopping";
+
+export type DiscoveryItem = {
+  id: string;
+  name: string;
+  category: DiscoveryCategory;
   url: string;
   snippet: string;
 };
@@ -19,14 +31,20 @@ export type DemandProxy = {
 export type ContextResponse = {
   time: string;
   location: {
-    city: "Stuttgart";
-    region: "Mitte";
+    city: "Muenchen";
+    region: "Balanstrasse 73";
   };
   weather: WeatherMock;
-  timeslot: 15 | 30 | 60;
+  timeslot: TimeslotMinutes;
   demandProxy: DemandProxy;
   events: ContextEvent[];
+  discoveries: DiscoveryItem[];
   eventsMeta: {
+    source: "tavily" | "fallback";
+    cacheHit: boolean;
+    note?: string;
+  };
+  weatherMeta: {
     source: "tavily" | "fallback";
     cacheHit: boolean;
     note?: string;

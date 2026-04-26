@@ -105,7 +105,7 @@ export function recommend(
           emotional: emotionalLine(ctx, poi),
           factual: factualLine(poi, ctx, discount),
           discountPct: discount,
-          validForMin: ctx.timeslotMin,
+          validForMin: Math.min(ctx.timeslotMin, 240),
           cta: "Einlösen",
           token: tokenize(),
         };

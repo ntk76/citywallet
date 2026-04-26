@@ -2,28 +2,28 @@ import type { ContextEvent } from "./types.js";
 
 export const FALLBACK_EVENTS: ContextEvent[] = [
   {
-    title: "Staatsgalerie Stuttgart - Aktuelle Ausstellungen",
-    url: "https://www.staatsgalerie.de/",
-    snippet: "Kunst-Highlights mit wechselnden Ausstellungen im Zentrum von Stuttgart.",
+    title: "Deutsches Museum - Aktuelle Highlights",
+    url: "https://www.deutsches-museum.de/",
+    snippet: "Wissenschaft und Technik in Muenchen mit wechselnden Programmpunkten.",
   },
   {
-    title: "Stuttgart-Marketing - Events und Veranstaltungen heute",
-    url: "https://www.stuttgart-tourist.de/",
-    snippet: "Offizielle Uebersicht zu Veranstaltungen, Touren und Stadt-Highlights.",
+    title: "Muenchen Tourismus - Veranstaltungen heute",
+    url: "https://www.muenchen.travel/",
+    snippet: "Offizielle Uebersicht zu Events, Touren und Highlights in Muenchen.",
   },
   {
-    title: "Markthalle Stuttgart - Kulinarische Entdeckungen",
-    url: "https://www.stuttgart.de/markthalle",
-    snippet: "Beliebter Spot in Mitte fuer Food, regionale Produkte und kurze Besuche.",
+    title: "Viktualienmarkt - Kulinarische Entdeckungen",
+    url: "https://www.viktualienmarkt-muenchen.de/",
+    snippet: "Beliebter Spot fuer Food, regionale Produkte und kurze Besuche in der Innenstadt.",
   },
   {
-    title: "Wilhelma Stuttgart - Zoo und Botanischer Garten",
-    url: "https://www.wilhelma.de/",
-    snippet: "Ausflugstipp mit wechselnden Programmpunkten und Indoor/Outdoor-Bereichen.",
+    title: "Gasteig HP8 - Kulturprogramm",
+    url: "https://www.gasteig.de/",
+    snippet: "Kultur- und Musikprogramm mit regelmaessig wechselnden Veranstaltungen.",
   },
   {
-    title: "Liederhalle Stuttgart - Konzerte und Kultur",
-    url: "https://www.liederhalle-stuttgart.de/",
-    snippet: "Abendprogramm mit Musik, Kultur und Buehnenveranstaltungen in der Innenstadt.",
+    title: "Muffatwerk - Konzerte und Events",
+    url: "https://www.muffatwerk.de/",
+    snippet: "Abendprogramm mit Musik und Veranstaltungen in Muenchen.",
   },
 ];

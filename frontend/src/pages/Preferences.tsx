@@ -15,6 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { TIMESLOT_OPTIONS, type TimeslotMinutes } from "@/lib/timeslot";
 
 export default function Preferences() {
   const [p, setP] = useState<Preferences>(() => loadPrefs());
@@ -146,16 +147,16 @@ export default function Preferences() {
         </div>
         <div className="space-y-2">
           <Label className="text-xs">Standard-Zeitfenster</Label>
-          <div className="flex gap-2">
-            {[15, 30, 60].map((s) => (
+          <div className="flex flex-wrap gap-2">
+            {TIMESLOT_OPTIONS.map(({ value: s, label }) => (
               <Button
                 key={s}
                 size="sm"
                 variant={p.defaultTimeslot === s ? "default" : "outline"}
-                onClick={() => update({ defaultTimeslot: s as 15|30|60 })}
+                onClick={() => update({ defaultTimeslot: s as TimeslotMinutes })}
                 className={`rounded-full ${p.defaultTimeslot === s ? "sunset-bg text-primary-foreground border-0" : ""}`}
               >
-                {s} Min
+                {label}
               </Button>
             ))}
           </div>

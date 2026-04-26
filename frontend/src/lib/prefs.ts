@@ -1,5 +1,6 @@
 import { loadJSON, saveJSON } from "./storage";
 import type { Category } from "@/mocks/pois";
+import { normalizeTimeslot, type TimeslotMinutes } from "@/lib/timeslot";
 
 export type Diet = "none" | "vegetarian" | "vegan" | "glutenfree";
 export type PaymentMethod = "applepay" | "googlepay" | "paypal" | "card" | "cash";
@@ -16,7 +17,7 @@ export type Preferences = {
   radiusM: number;
   diet: Diet;
   indoorWhenRain: boolean;
-  defaultTimeslot: 15 | 30 | 60;
+  defaultTimeslot: TimeslotMinutes;
   paymentMethods: PaymentMethod[];
   preferredPaymentMethod: PaymentMethod;
   paymentProfiles: PaymentProfile[];
@@ -56,6 +57,7 @@ export function loadPrefs(): Preferences {
     paymentMethods,
     paymentProfiles,
     preferredPaymentProfileId,
+    defaultTimeslot: normalizeTimeslot(raw.defaultTimeslot ?? DEFAULT_PREFS.defaultTimeslot),
     preferredPaymentMethod:
       raw.preferredPaymentMethod && paymentMethods.includes(raw.preferredPaymentMethod)
         ? raw.preferredPaymentMethod

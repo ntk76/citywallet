@@ -1,8 +1,9 @@
 import { useMemo, useState } from "react";
-import { fetchContext } from "@/mocks/context";
 import { POIS, categoryMeta, type Category } from "@/mocks/pois";
 import { recommend } from "@/lib/recommend";
 import { loadPrefs } from "@/lib/prefs";
+import { useContextSignals } from "@/lib/context-api";
+import { formatTimeslotLabel } from "@/lib/timeslot";
 import { OfferCard } from "@/components/wallet/OfferCard";
 import { Button } from "@/components/ui/button";
 import { Switch } from "@/components/ui/switch";
@@ -16,16 +17,17 @@ export default function ExploreList() {
   const [sort, setSort] = useState<Sort>("relevance");
   const [onlyFits, setOnlyFits] = useState(false);
 
-  const ctx = useMemo(() => fetchContext(prefs.defaultTimeslot), [prefs.defaultTimeslot]);
+  const ctx = useContextSignals(prefs.defaultTimeslot);
+  const sourcePois = ctx.livePois.length > 0 ? ctx.livePois : POIS;
 
   const items = useMemo(() => {
-    const filtered = cat === "all" ? POIS : POIS.filter((p) => p.category === cat);
+    const filtered = cat === "all" ? sourcePois : sourcePois.filter((p) => p.category === cat);
     let recs = recommend(filtered, ctx, prefs);
     if (onlyFits) recs = recs.filter((r) => r.fitsTimeslot);
     if (sort === "distance") recs = [...recs].sort((a, b) => a.poi.distanceM - b.poi.distanceM);
     if (sort === "open") recs = [...recs].sort((a, b) => Number(b.poi.openNow) - Number(a.poi.openNow));
     return recs;
-  }, [cat, sort, onlyFits, ctx, prefs]);
+  }, [cat, sort, onlyFits, sourcePois, ctx, prefs]);
 
   const cats: Array<Category | "all"> = ["all", "food", "events", "markets", "museums", "shopping"];
 
@@ -33,7 +35,9 @@ export default function ExploreList() {
     <div className="space-y-4">
       <header>
         <h1 className="text-2xl font-bold"><span className="sunset-text">Erkunde</span> deine Stadt</h1>
-        <p className="text-xs text-muted-foreground">{items.length} Vorschläge · {ctx.timeslotMin} Min Fenster</p>
+        <p className="text-xs text-muted-foreground">
+          {items.length} Vorschläge · Fenster {formatTimeslotLabel(ctx.timeslotMin)}
+        </p>
       </header>
 
       <div className="-mx-4 overflow-x-auto px-4">

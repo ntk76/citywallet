@@ -1,0 +1,170 @@
+import { useEffect, useState } from "react";
+import { fetchContext, type ContextSignals } from "@/mocks/context";
+import type { POI, Category } from "@/mocks/pois";
+import { normalizeTimeslot, type TimeslotMinutes } from "@/lib/timeslot";
+
+type BackendContext = {
+  time: string;
+  weather: {
+    condition: "sunny" | "cloudy" | "rain" | "cold";
+    tempC: number;
+    label: string;
+  };
+  timeslot: number;
+  discoveries?: Array<{
+    id: string;
+    name: string;
+    category: Category;
+    url: string;
+    snippet: string;
+  }>;
+  events: Array<{ title: string; url: string; snippet: string }>;
+  eventsMeta?: {
+    source: "tavily" | "fallback";
+    cacheHit: boolean;
+    note?: string;
+  };
+  weatherMeta?: {
+    source: "tavily" | "fallback";
+    cacheHit: boolean;
+    note?: string;
+  };
+};
+
+const MUENCHEN_BALANSTRASSE_73 = { lat: 48.1192, lng: 11.5946 };
+const API_BASE = import.meta.env.VITE_CONTEXT_API_URL ?? "http://localhost:8787";
+
+const emojiByCondition: Record<BackendContext["weather"]["condition"], string> = {
+  sunny: "☀️",
+  cloudy: "⛅",
+  rain: "🌧️",
+  cold: "🥶",
+};
+
+const cache = new Map<string, { value: ContextSignals; expiresAt: number }>();
+
+function partOfDay(hour: number): ContextSignals["partOfDay"] {
+  if (hour < 6) return "night";
+  if (hour < 11) return "morning";
+  if (hour < 14) return "midday";
+  if (hour < 18) return "afternoon";
+  if (hour < 22) return "evening";
+  return "night";
+}
+
+function hueByCategory(category: Category): number {
+  return (
+    {
+      food: 24,
+      events: 280,
+      markets: 95,
+      museums: 220,
+      shopping: 35,
+    } as const
+  )[category];
+}
+
+function mapDiscoveriesToPois(discoveries: NonNullable<BackendContext["discoveries"]>): POI[] {
+  return discoveries.map((item, idx) => {
+    const distanceM = 250 + ((idx % 8) + 1) * 140;
+    return {
+      id: `live-${item.id}`,
+      name: item.name,
+      category: item.category,
+      location: {
+        lat: MUENCHEN_BALANSTRASSE_73.lat + (idx % 5) * 0.0012,
+        lng: MUENCHEN_BALANSTRASSE_73.lng + (idx % 4) * 0.0011,
+      },
+      walkMin: Math.max(3, Math.round(distanceM / 95)),
+      distanceM,
+      openNow: true,
+      indoor: item.category !== "markets",
+      priceLevel: item.category === "shopping" ? 3 : item.category === "markets" ? 1 : 2,
+      tags: [item.category, "live", "tavily"],
+      demand: 0.35 + ((idx % 4) * 0.1),
+      imageHue: hueByCategory(item.category),
+      description: item.snippet,
+    };
+  });
+}
+
+async function fetchLiveContext(timeslotMin: TimeslotMinutes): Promise<ContextSignals> {
+  const key = String(timeslotMin);
+  const now = Date.now();
+  const cached = cache.get(key);
+  if (cached && cached.expiresAt > now) return cached.value;
+
+  try {
+    const response = await fetch(`${API_BASE}/context`, {
+      headers: {
+        "X-Timeslot": String(timeslotMin),
+      },
+    });
+
+    if (!response.ok) return fetchContext(timeslotMin);
+
+    const json = (await response.json()) as BackendContext;
+    const date = new Date(json.time);
+    const hour = date.getHours();
+    const minute = date.getMinutes();
+
+    const mapped: ContextSignals = {
+      weather: {
+        condition: json.weather.condition,
+        temperatureC: json.weather.tempC,
+        emoji: emojiByCondition[json.weather.condition] ?? "⛅",
+        label: json.weather.label,
+      },
+      hour,
+      minute,
+      partOfDay: partOfDay(hour),
+      location: MUENCHEN_BALANSTRASSE_73,
+      timeslotMin: normalizeTimeslot(json.timeslot),
+      source: json.eventsMeta?.source === "tavily" || json.weatherMeta?.source === "tavily" ? "backend" : "mock",
+      events: json.events ?? [],
+      eventsSource: json.eventsMeta?.source ?? "fallback",
+      livePois: mapDiscoveriesToPois(json.discoveries ?? []),
+    };
+
+    console.info("[context-api] backend /context success", {
+      timeslotMin,
+      apiBase: API_BASE,
+      eventsSource: json.eventsMeta?.source,
+      weatherSource: json.weatherMeta?.source,
+      eventsCacheHit: json.eventsMeta?.cacheHit,
+      weatherCacheHit: json.weatherMeta?.cacheHit,
+    });
+    cache.set(key, { value: mapped, expiresAt: now + 60_000 });
+    return mapped;
+  } catch {
+    console.warn("[context-api] backend /context failed, using mock fallback", { timeslotMin, apiBase: API_BASE });
+    return fetchContext(timeslotMin);
+  }
+}
+
+export function useContextSignals(timeslotMin: TimeslotMinutes): ContextSignals {
+  const [ctx, setCtx] = useState<ContextSignals>(() => fetchContext(timeslotMin));
+
+  useEffect(() => {
+    let active = true;
+    const sync = () =>
+      fetchLiveContext(timeslotMin).then((next) => {
+        if (active) setCtx(next);
+      });
+
+    sync();
+    const intervalId = window.setInterval(sync, 60_000);
+    const onVisible = () => {
+      if (document.visibilityState === "visible") sync();
+    };
+    document.addEventListener("visibilitychange", onVisible);
+
+    return () => {
+      active = false;
+      window.clearInterval(intervalId);
+      document.removeEventListener("visibilitychange", onVisible);
+    };
+  }, [timeslotMin]);
+
+  return ctx;
+}
